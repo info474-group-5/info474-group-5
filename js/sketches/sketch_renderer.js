@@ -26,27 +26,30 @@
                 return;
             }
 
-            // use RQ1 viz when activeIndex = 4
-            if (ai === 4) {
+            // Section 2: RQ1A – match duration over time
+            if (ai === 2) {
                 window.VizRQ1_YearlyPace.draw(p, manager, ai, progress);
                 return;
             }
 
-            // Section 5: RQ1B – speed vs duration
-            if (ai === 5) {
+            /// Section 3: RQ1B – serve speed vs match duration
+            if (ai === 3) {
                 window.VizRQ1_PaceSpeed.draw(p, manager, ai, progress);
                 return;
             }
 
-            if (ai >= 6 && ai < 7) {
+            // Sections 4–5: RQ2 (placeholder for now)
+            if (ai === 4 || ai === 5) {
                 window.VizScatter.draw(p, manager, ai, progress);
                 return;
             }
 
-            if (ai === 7) {
+            // Sections 6–7: RQ3 / conclusion (placeholder for now)
+            if (ai === 6 || ai === 7) {
                 window.VizBar.draw(p, manager, ai, progress);
                 return;
             }
+
 
         }
     };

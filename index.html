@@ -11,73 +11,149 @@
   <div class="container">
     <div id='graphic'>
       <div id='sections'>
+
+        <!-- SECTION 0 -->
         <section class="step" data-active-index="0">
-          <div class="title">INFO 474 Final Project</div>
-          Here is a template to work on your final project.<br /><br />
-          Your mission is to create an <b>interactive article using P5.js</b>.
+          <div class="title">The Evolution of Dominance in Modern Tennis</div>
+          <p>
+            Over the last two decades, professional tennis has transformed.
+            Matches have become faster, athletes stronger, and strategies more data-driven.
+            This interactive article explores how pace, power, and playing style have shifted
+            from the Big Three era to the rise of new stars like Alcaraz, Swiatek, and Sinner.
+          </p>
+          <p>
+            As you scroll, the text will guide the story while the visualization on the right reacts.
+            Think of this as a journey through time — told through the numbers that shaped modern tennis.
+          </p>
         </section>
+
+        <!-- SECTION 1 -->
         <section class="step" data-active-index="1">
-          <div class="title">Sections</div>
-          Note that each section in index.html corresponds to a section in the
-          scrolling article. You can add or remove sections as needed.
+          <div class="title">RQ1: How Has the Rhythm of Matches Changed?</div>
+          <p>
+            Before comparing generations, we first examine the sport itself.
+            Has tennis become shorter? Longer? Faster? Slower?
+          </p>
+          <p>
+            We analyze two indicators of match “tempo”:
+            <b>average match duration</b> and <b>average serve speed</b>.
+            These metrics help us understand whether the modern game is truly
+            more power-oriented — or whether rallies, endurance, and return quality
+            still play an equal role.
+          </p>
         </section>
+
+        <!-- SECTION 2 -->
         <section class="step" data-active-index="2">
-          <div class="title">No visualization</div>
-          You don't need to have a visualization for every section. Some sections may simply be text.
+          <div class="title">Match Duration Over Time</div>
+          <p>
+            Surprisingly, match duration has remained relatively stable.
+            Even as technology improved and physical intensity increased,
+            the average ATP main-draw match has stayed within a consistent time range.
+          </p>
+          <p>
+            Small jumps year-to-year often reflect surface adjustments or specific
+            tournament conditions — but there is no dramatic upward or downward trend.
+            Tennis has modernized, yet its pacing remains familiar.
+          </p>
         </section>
+
+        <!-- SECTION 3 -->
         <section class="step" data-active-index="3">
-          <div class="title">Narrative</div>
-          These sections will tell a story. You can use them to explain the visualization, provide context,
-          or share insights.
+          <div class="title">Power vs. Pace: Serve Speed and Match Length</div>
+          <p>
+            When we focus on Grand Slam years with reliable serve-speed data,
+            we see an interesting pattern: <b>higher serve speeds do not always lead to shorter matches</b>.
+          </p>
+          <p>
+            This suggests that modern tennis is shaped not only by power,
+            but by defense, movement, and tactical depth. Big serves matter —
+            but what happens after the return can matter even more.
+          </p>
         </section>
+
+        <!-- SECTION 4 -->
         <section class="step" data-active-index="4">
-          <div class="title">Be creative</div>
-          Surprise your readers with interesting interactions, animations, or data visualizations.
+          <div class="title">RQ2: From the Big Three to the New Era</div>
+          <p>
+            With the overall match rhythm understood, we now turn to the players
+            who defined — and are redefining — dominance.
+          </p>
+          <p>
+            Federer, Nadal, and Djokovic built historic careers through longevity
+            and consistency. Today’s emerging stars, like Alcaraz, Swiatek, and
+            Sinner, rise in a landscape with deeper competition and faster surfaces.
+          </p>
+          <p>
+            Our next visualizations (later in development) will compare their
+            win rates, peak rankings, and efficiency metrics.
+          </p>
         </section>
+
+        <!-- SECTION 5 -->
         <section class="step" data-active-index="5">
-          <div class="title">Same visualization multiple sections</div>
-          Some visualizations may be relevant to multiple sections. You can reuse the same visualization
-          across different sections to reinforce key points. Or build on the previous visualization to just add on.
+          <div class="title">Different Ways to Dominate</div>
+          <p>
+            The Big Three owned decade-long periods atop the sport, often across
+            multiple surfaces. Their consistency remains unmatched.
+          </p>
+          <p>
+            The new era shows a different pattern: explosive peaks, rapid shifts,
+            and heavy physical demands. Dominance today is more volatile —
+            and perhaps more competitive — than ever before.
+          </p>
         </section>
-        <div id="extra-space">
-        </div>
+
+        <div id="extra-space"></div>
+
+        <!-- SECTION 6 -->
         <section class="step" data-active-index="6">
-          <div class="title">Examples</div>
-          There is two examples in this code. One is a grid of circles that changes color
-          based on the section index. The other is a scatter plot and bar chart that
-          shows random data points. You can modify or replace these examples with your own visualizations.
-          Make sure you read both source files to understand how they work.
+          <div class="title">RQ3: How Do Surfaces Shape Style?</div>
+          <p>
+            No two courts play the same. Clay rewards endurance. Grass favors
+            first-strike aggression. Hard courts blend both worlds.
+          </p>
+          <p>
+            By examining win rate and performance by surface, we can uncover
+            which eras — and which athletes — thrive on certain styles of play.
+            These patterns complete the picture of how tennis strategy evolves.
+          </p>
         </section>
+
+        <!-- SECTION 7 -->
         <section class="step" data-active-index="7">
-          <div class="title">Best of Luck in the Project!</div>
-          You are now ready to start building your interactive article. Good luck!
+          <div class="title">Conclusion: What We Learned</div>
+          <p>
+            Tennis has become faster and more physical, but not in a linear way.
+            Serve speeds climbed, yet match length barely changed. Dominance remains —
+            but the shape of dominance is shifting.
+          </p>
+          <p>
+            The modern game blends tradition and evolution: powerful serves,
+            deeper competition, and players whose tactical versatility defines
+            a new era of excellence.
+          </p>
+          <p><i>
+            The scoreboard tells us who wins. The data tells us how the game changed.
+          </i></p>
         </section>
+
       </div>
-      <div id='vis' class='vis-hidden'>
-      </div>
-      <div id="extra-space">
-      </div>
+
+      <!-- Visualization container -->
+      <div id='vis' class='vis-hidden'></div>
+      <div id="extra-space"></div>
     </div>
   </div>
 
-
-  <!-- p5.js (using CDN) -->
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
-  <!-- helpers (data/loading, scroller, visual controller) -->
   <script src="js/helpers/data_loader.js"></script>
   <script src="js/helpers/scroller.js"></script>
   <script src="js/helpers/visual_controller.js"></script>
-
-  <!-- orchestrator (wires scroller -> sketch) -->
   <script src="js/helpers/sections.js"></script>
-
-  <!-- sketches (manager) -->
   <script src="js/sketches/sketch_manager.js"></script>
-
-  <!-- sketches (example renderer) -->
   <script src="js/sketches/examples/sketch_grid.js"></script>
-
-  <!-- sketches (renderers): UPDATE HERE FOR PROJECT -->
   <script src="js/sketches/viz/viz_title.js"></script>
   <script src="js/sketches/viz/viz_scatter.js"></script>
   <script src="js/sketches/viz/viz_bar.js"></script>
@@ -85,7 +161,5 @@
   <script src="js/sketches/viz/viz_rq1_pace_speed.js"></script>
   <script src="js/sketches/sketch_renderer.js"></script>
 
-
 </body>
-
 </html>
