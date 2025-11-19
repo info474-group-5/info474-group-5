@@ -44,6 +44,13 @@
                 return;
             }
 
+            // section 6: RQ2A - Big three rank and slams
+           if (ai === 6) {
+               window.Viz_RQ2_RanksSlams.draw(p, manager, ai, progress);
+               return;
+            }
+
+
             // Sections 6–7: RQ3 / conclusion (placeholder for now)
             if (ai === 6 || ai === 7) {
                 window.VizBar.draw(p, manager, ai, progress);
