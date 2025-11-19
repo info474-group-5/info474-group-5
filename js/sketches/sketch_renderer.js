@@ -38,21 +38,23 @@
                 return;
             }
 
-            // Sections 4–5: RQ2 (placeholder for now)
+            // Sections 4–5: RQ2 – Big 3 rankings + Slam wins
+            // (same viz, two narrative beats)
             if (ai === 4 || ai === 5) {
-                window.VizScatter.draw(p, manager, ai, progress);
+                window.Viz_RQ2_RanksSlams.draw(p, manager, ai, progress);
                 return;
             }
 
-            // section 6: RQ2A - Big three rank and slams
-           if (ai === 6) {
-               window.Viz_RQ2_RanksSlams.draw(p, manager, ai, progress);
-               return;
+            // Section 6: RQ3A (placeholder or your RQ3 viz)
+            if (ai === 6) {
+                // TODO: swap in your real RQ3A viz when ready
+                window.VizBar.draw(p, manager, ai, progress);
+                return;
             }
 
-
-            // Sections 6–7: RQ3 / conclusion (placeholder for now)
-            if (ai === 6 || ai === 7) {
+            // Section 7: RQ3B / conclusion (placeholder or your RQ3 viz)
+            if (ai === 7) {
+                // TODO: swap in your real RQ3B viz when ready
                 window.VizBar.draw(p, manager, ai, progress);
                 return;
             }
