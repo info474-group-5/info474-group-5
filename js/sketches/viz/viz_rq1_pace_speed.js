@@ -1,12 +1,13 @@
-// viz_rq1_yearlypace.js
+// viz_rq1_pace_speed.js
 (function () {
     const Viz = {
         _loading: false,
         _ready: false,
         _years: [],
         _minutes: [],
-        _minYear: null,
-        _maxYear: null,
+        _speeds: [],
+        _minSpeed: null,
+        _maxSpeed: null,
         _minMinutes: null,
         _maxMinutes: null,
 
@@ -26,7 +27,7 @@
                         const m = table.getNum(r, "minutes");
                         const s = table.getNum(r, "Speed_MPH");
 
-                        if (!isNaN(y) && !isNaN(m)) {
+                        if (!isNaN(y) && !isNaN(m) && !isNaN(s)) {
                             years.push(y);
                             minutes.push(m);
                             speeds.push(s);
@@ -34,7 +35,7 @@
                     }
 
                     if (years.length === 0) {
-                        console.warn("RQ1: no valid rows in rq1_yearly_pace.csv");
+                        console.warn("RQ1B: no valid rows in rq1_yearly_pace.csv");
                         this._loading = false;
                         this._ready = false;
                         return;
@@ -44,18 +45,16 @@
                     this._minutes = minutes;
                     this._speeds = speeds;
 
-                    this._minYear = Math.min(...years);
-                    this._maxYear = Math.max(...years);
+                    this._minSpeed = Math.min(...speeds);
+                    this._maxSpeed = Math.max(...speeds);
                     this._minMinutes = Math.min(...minutes);
                     this._maxMinutes = Math.max(...minutes);
-                    this._minSpeed = Math.min(...speeds);   // <--- optional
-                    this._maxSpeed = Math.max(...speeds); 
 
                     this._loading = false;
                     this._ready = true;
                 },
                 (err) => {
-                    console.error("Error loading rq1_yearly_pace.csv", err);
+                    console.error("Error loading rq1_yearly_pace.csv for RQ1B", err);
                     this._loading = false;
                     this._ready = false;
                 }
@@ -63,7 +62,6 @@
         },
 
         draw: function (p, manager, ai, progress) {
-            // lazy-load data the first time we are drawn
             if (!this._loading && !this._ready) {
                 this._loadData(p);
             }
@@ -73,20 +71,19 @@
             p.textSize(14);
 
             if (this._loading) {
-                p.text("Loading RQ1 data…", 50, 200);
+                p.text("Loading RQ1B data…", 50, 200);
                 return;
             }
 
             if (!this._ready) {
-                p.text("No RQ1 data available.", 50, 200);
+                p.text("No RQ1B data available.", 50, 200);
                 return;
             }
 
-            // --- layout ---
-            const marginLeft = 60;
-            const marginRight = 30;
-            const marginTop = 40;
-            const marginBottom = 50;
+            const marginLeft = 70;
+            const marginRight = 40;
+            const marginTop = 50;
+            const marginBottom = 60;
 
             const plotW = p.width - marginLeft - marginRight;
             const plotH = p.height - marginTop - marginBottom;
@@ -94,81 +91,56 @@
             const originX = marginLeft;
             const originY = p.height - marginBottom;
 
-            // --- axes ---
+            // axes
             p.stroke(0);
             p.strokeWeight(1);
-
-            // x-axis
+            // x
             p.line(originX, originY, originX + plotW, originY);
-            // y-axis
+            // y
             p.line(originX, originY, originX, originY - plotH);
 
-            // axis labels
+            // labels
             p.noStroke();
             p.textSize(12);
             p.textAlign(p.CENTER, p.TOP);
-            p.text("Year", originX + plotW / 2, originY + 25);
-
-
-            // x-axis ticks + year labels
-            p.textAlign(p.CENTER, p.TOP);
-            const nYears = this._years.length;
-
-            // if only a few points, label each one
-            for (let i = 0; i < nYears; i++) {
-                const year = this._years[i];
-                const x = p.map(year, this._minYear, this._maxYear, originX, originX + plotW);
-
-                // small tick mark
-                p.stroke(0);
-                p.line(x, originY, x, originY + 5);
-
-                // year label
-                p.noStroke();
-                p.text(year.toString(), x, originY + 8);
-            }
+            p.text("Average Serve Speed (mph)", originX + plotW / 2, originY + 30);
 
             p.push();
-            p.translate(originX - 40, originY - plotH / 2);
+            p.translate(originX - 45, originY - plotH / 2);
             p.rotate(-Math.PI / 2);
             p.textAlign(p.CENTER, p.TOP);
-            p.text("Avg Match Duration (minutes)", 0, 0);
+            p.text("Average Match Duration (minutes)", 0, 0);
             p.pop();
 
-            // --- line for minutes vs year ---
-            p.stroke(40, 100, 180);
-            p.strokeWeight(2);
-            p.noFill();
-            p.beginShape();
+            // scatter points: each year one dot
+            p.textAlign(p.LEFT, p.BOTTOM);
             for (let i = 0; i < this._years.length; i++) {
                 const year = this._years[i];
                 const mins = this._minutes[i];
+                const spd = this._speeds[i];
 
-                const x = p.map(year, this._minYear, this._maxYear, originX, originX + plotW);
+                const x = p.map(spd, this._minSpeed, this._maxSpeed, originX, originX + plotW);
                 const y = p.map(mins, this._minMinutes, this._maxMinutes, originY, originY - plotH);
-                p.vertex(x, y);
-            }
-            p.endShape();
 
-            // draw points
-            p.fill(40, 100, 180);
-            p.noStroke();
-            for (let i = 0; i < this._years.length; i++) {
-                const year = this._years[i];
-                const mins = this._minutes[i];
+                // point
+                p.noStroke();
+                p.fill(40, 100, 180);
+                p.circle(x, y, 7);
 
-                const x = p.map(year, this._minYear, this._maxYear, originX, originX + plotW);
-                const y = p.map(mins, this._minMinutes, this._maxMinutes, originY, originY - plotH);
-                p.circle(x, y, 6);
+                // year label next to point
+                p.fill(0);
+                p.textSize(11);
+                p.text(year.toString(), x + 6, y - 4);
             }
 
             // title
             p.fill(0);
             p.textAlign(p.LEFT, p.BOTTOM);
             p.textSize(16);
-            p.text("RQ1 – Average Match Duration by Year", marginLeft, marginTop - 10);
+            p.text("RQ1 – Match Duration vs Serve Speed (Grand Slams, 2011–2015)",
+                marginLeft, marginTop - 15);
         }
     };
 
-    window.VizRQ1_YearlyPace = Viz;
+    window.VizRQ1_PaceSpeed = Viz;
 })();

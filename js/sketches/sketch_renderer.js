@@ -32,7 +32,13 @@
                 return;
             }
 
-            if (ai >= 5 && ai < 7) {
+            // Section 5: RQ1B – speed vs duration
+            if (ai === 5) {
+                window.VizRQ1_PaceSpeed.draw(p, manager, ai, progress);
+                return;
+            }
+
+            if (ai >= 6 && ai < 7) {
                 window.VizScatter.draw(p, manager, ai, progress);
                 return;
             }
