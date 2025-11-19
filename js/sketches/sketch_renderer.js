@@ -26,7 +26,13 @@
                 return;
             }
 
-            if (ai >= 4 && ai < 7) {
+            // use RQ1 viz when activeIndex = 4
+            if (ai === 4) {
+                window.VizRQ1_YearlyPace.draw(p, manager, ai, progress);
+                return;
+            }
+
+            if (ai >= 5 && ai < 7) {
                 window.VizScatter.draw(p, manager, ai, progress);
                 return;
             }
@@ -35,6 +41,7 @@
                 window.VizBar.draw(p, manager, ai, progress);
                 return;
             }
+
         }
     };
 })();
