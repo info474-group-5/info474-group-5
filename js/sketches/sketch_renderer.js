@@ -48,7 +48,7 @@
             // Section 6: RQ3A (placeholder or your RQ3 viz)
             if (ai === 6) {
                 // TODO: swap in your real RQ3A viz when ready
-                window.VizBar.draw(p, manager, ai, progress);
+                window.Viz_RQ3_a.draw(p, manager, ai, progress);
                 return;
             }
 
