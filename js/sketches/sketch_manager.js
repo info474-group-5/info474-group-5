@@ -36,6 +36,26 @@ function startP5() {
                 p.background(255);
                 self.draw(p);
             };
+            // ADD MOUSE PRESSED HANDLER
+            p.mousePressed = function () {
+                var ai = self.state.activeIndex || 0;
+
+                if (ai === 4 && window.Viz_RQ2_RanksSlams) {
+                    window.Viz_RQ2_RanksSlams.handleClick(p);
+                    return false;
+                }
+                // Handle clicks for RQ2B dashboard (section 5)
+                if (ai === 5 && window.Viz_RQ2B_Dashboard) {
+                    window.Viz_RQ2B_Dashboard.handleClick(p);
+                    return false; // Prevent default behavior
+                }
+            };
+
+            // ADD MOUSE MOVED HANDLER (for hover effects)
+            p.mouseMoved = function () {
+                // This triggers redraws when mouse moves, enabling hover effects
+                return false;
+            };
         };
 
         this.p5 = new p5(sketch);
