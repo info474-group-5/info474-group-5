@@ -9,6 +9,7 @@
     
     // State and data
     atpTable: null,
+    loading: true,
     allData: [],
     playerList: [],
     years: [],
@@ -24,7 +25,7 @@
     yScale: null,
     colorScale: null,
     
-    hoverCell: null, // { player, year, surface, avg_gwr, matches_count }
+    hoverCell: null,
 
     parseScore: function (scoreString) {
       // Basic checks for non-match results

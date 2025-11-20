@@ -49,6 +49,10 @@ function startP5() {
                     window.Viz_RQ2B_Dashboard.handleClick(p);
                     return false; // Prevent default behavior
                 }
+
+                if (ai === 7 && window.Viz_RQ3_b) {
+                    return window.Viz_RQ3_b.handleClick(p, self);
+                }
             };
 
             // ADD MOUSE MOVED HANDLER (for hover effects)
