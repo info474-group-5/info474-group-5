@@ -40,30 +40,30 @@
 
     processData() {
       if (!this.table) return;
-
+    
       const byTour = { ATP: [], WTA: [] };
-
+    
       for (let r = 0; r < this.table.getRowCount(); r++) {
-        const year = parseInt(this.table.getString(r, "year"));
-        const gender = this.table.getString(r, "gender");
-        const aces100 = parseFloat(this.table.getString(r, "aces_per_100"));
-        const domPct = parseFloat(this.table.getString(r, "serve_points_won_pct"));
-
+        const year   = parseInt(this.table.getString(r, "year"));
+        const tour   = this.table.getString(r, "tour");  // <— use 'tour'
+        const aces100 = parseFloat(this.table.getString(r, "aces_per_100_points"));
+        const domPct  = parseFloat(this.table.getString(r, "serve_dom_index"));
+    
         if (!year || isNaN(aces100) || isNaN(domPct)) continue;
-        if (!(gender in byTour)) continue;
-
-        byTour[gender].push({
+        if (!(tour in byTour)) continue;
+    
+        byTour[tour].push({
           year,
           aces: aces100,
           dom: domPct
         });
       }
-
+    
       // sort by year
       for (let t of this.tours) {
         byTour[t].sort((a, b) => a.year - b.year);
       }
-
+    
       this.series = byTour;
     },
 
