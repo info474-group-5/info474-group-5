@@ -90,13 +90,13 @@
 
             // Section 2: RQ1A – match duration over time
             if (ai === 2) {
-                window.VizRQ1_YearlyPace.draw(p, manager, ai, progress);
+                window.VizRQ1_AcesTrend.draw(p, manager, ai, progress);
                 return;
             }
 
             // Section 3: RQ1B – serve speed vs match duration
             if (ai === 3) {
-                window.VizRQ1_PaceSpeed.draw(p, manager, ai, progress);
+                window.VizRQ1_AggScatter.draw(p, manager, ai, progress);
                 return;
             }
 
