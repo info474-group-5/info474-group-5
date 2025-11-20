@@ -26,13 +26,11 @@
         // Kick off loading both tables
         if (cache.atp === null) {
           p.loadTable("data/raw/atp_matches.csv", 'csv', 'header', function (tbl) {
-            cache.atp = tbl;
             maybeProcess();
           });
         }
         if (cache.wta === null) {
-          p.loadTable("/data/raw/wta-grandslam.csv", 'csv', 'header', function (tbl) {
-            cache.wta = tbl;
+          p.loadTable("data/raw/wta-grandslam.csv", 'csv', 'header', function (tbl) {
             maybeProcess();
           });
         }
