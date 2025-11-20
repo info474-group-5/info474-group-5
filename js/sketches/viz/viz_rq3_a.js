@@ -6,9 +6,11 @@
     draw: function (p, manager, ai, progress) {
       p.push();
 
-      const left = manager.offsetX || 20;
+      const initialLeftOffset = 250;
+      const left = manager.offsetX || initialLeftOffset;
       const top = manager.offsetY || 20;
-      const w = manager.width || 760;
+      const totalCanvasWidth = 900;
+      const w = manager.width || (totalCanvasWidth - initialLeftOffset - 20);
       const h = manager.height || 480;
 
       // Initialize cache
