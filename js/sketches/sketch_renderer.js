@@ -58,6 +58,7 @@
             if (ai === 7) {
                 // TODO: swap in your real RQ3B viz when ready
                 window.VizBar.draw(p, manager, ai, progress);
+                //window.Viz_RQ3_b.draw(p, manager, ai, progress);
                 return;
             }
         }
