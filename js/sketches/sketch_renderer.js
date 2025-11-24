@@ -23,42 +23,57 @@
                 return;
             }
 
-            // Section 2: RQ1A 
+            // Section 2: RQ3A
             if (ai === 2) {
-                window.VizRQ1_AcesTrend.draw(p, manager, ai, progress);
-                return;
-            }
-
-            // Section 3: RQ1B
-            if (ai === 3) {
-                window.VizRQ1_AggScatter.draw(p, manager, ai, progress);
-                return;
-            }
-
-            // Section 4: RQ2A – Big 3 rankings + Slam wins
-            if (ai === 4) {
-                window.Viz_RQ2_RanksSlams.draw(p, manager, ai, progress);
-                return;
-            }
-
-            // Section 5: RQ2B – Big 3 vs Next Gen Dashboard
-            if (ai === 5) {
-                window.Viz_RQ2B_Dashboard.draw(p, manager, ai, progress);
-                return;
-            }
-
-            // Section 6: RQ3A (placeholder or your RQ3 viz)
-            if (ai === 6) {
-                // TODO: swap in your real RQ3A viz when ready
                 window.Viz_RQ3_a.draw(p, manager, ai, progress);
                 return;
             }
 
-            // Section 7: RQ3B / conclusion (placeholder or your RQ3 viz)
+            // Section 3: RQ3B
+            if (ai === 3) {
+                // Place holder visualization because actual RQ3_B isn't rendering
+                window.VizRQ1_AggScatter.draw(p, manager, ai, progress);
+                return;
+            }
+
+            // Section 4: RQ1
+            if (ai === 4) {
+                // Place holder for picture
+                return;
+            }
+
+            // Section 5: RQ1_A
+            if (ai === 5) {
+                window.VizRQ1_AcesTrend.draw(p, manager, ai, progress);
+                return;
+            }
+
+            // Section 6: RQ1_B
+            if (ai === 6) {
+                window.VizRQ1_AggScatter.draw(p, manager, ai, progress);
+                return;
+            }
+
+            // Section 7: RQ2
             if (ai === 7) {
-                // TODO: swap in your real RQ3B viz when ready
+                return;
+            }
+
+            // Section 8: RQ2_A Rankings & Slam Trajectories
+            if (ai === 8) {
+                window.Viz_RQ2_RanksSlams.draw(p, manager, ai, progress);
+                return;
+            }
+
+            // Section 9: RQ2_B Player Dashboard
+            if (ai === 9) {
+                window.Viz_RQ2B_Dashboard.draw(p, manager, ai, progress);
+                return;
+            }
+
+            // Section 10: Conclusion
+            if (ai === 10) {
                 window.VizBar.draw(p, manager, ai, progress);
-                //window.Viz_RQ3_b.draw(p, manager, ai, progress);
                 return;
             }
         }
