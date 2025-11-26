@@ -1,5 +1,5 @@
 // Country Vertex Points
-const country = [
+window.country = [
   {
     name: "Afghanistan",
     vertexPoint: [
@@ -13520,7 +13520,7 @@ vertexPoint: [
       [2.6, 1.1],
       [1.9, -0.8],
       [2.9, 0.6],
-      "z"
+      z
     ]
   }
 ];
