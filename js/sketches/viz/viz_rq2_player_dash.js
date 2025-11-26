@@ -1,113 +1,185 @@
-// // Big 3 vs Next Gen Player Comparison Dashboard
+
+// Player Dashboard: Simple List + Detail View
 (function () {
   const Viz = {
-    currentGeneration: "big3",
     selectedPlayer: null,
     playerPhotos: {},
-    imagesLoaded: false,
     initialized: false,
-    margin: { top: 60, right: 40, bottom: 60, left: 80 },
-    
-    // Dummy data structure - replace with real CSV data later
+
+    // One flat list of players (add/remove as you like)
+    playerOrder: [
+      "federer",
+      "nadal",
+      "djokovic",
+      "alcaraz",
+      "sinner",
+      "serena",
+      "henin",
+      "swiatek",
+      "sabalenka",
+      "gauff"
+    ],
+
     playerData: {
-      big3: {
-        federer: {
-          name: "Roger Federer",
-          careerWinPct: 82.2,
-          grandSlamTitles: 20,
-          peakRanking: 1,
-          serveEfficiency: 78.5,
-          returnGamesWon: 34.2,
-          breakPointConversion: 41.3,
-          color: null,  // Will be set in ensureInit
-          photoUrl: "photos/federer.jpg"
-        },
-        nadal: {
-          name: "Rafael Nadal",
-          careerWinPct: 83.3,
-          grandSlamTitles: 22,
-          peakRanking: 1,
-          serveEfficiency: 73.8,
-          returnGamesWon: 38.5,
-          breakPointConversion: 44.7,
-          color: null,
-          photoUrl: "photos/nadal.jpg"
-        },
-        djokovic: {
-          name: "Novak Djokovic",
-          careerWinPct: 83.5,
-          grandSlamTitles: 24,
-          peakRanking: 1,
-          serveEfficiency: 76.2,
-          returnGamesWon: 40.1,
-          breakPointConversion: 45.2,
-          color: null,
-          photoUrl: "photos/djokovic.jpg"
-        }
+      federer: {
+        name: "Roger Federer",
+        tour: "ATP",
+        careerWinPct: 82.2,
+        grandSlamTitles: 20,
+        peakRanking: 1,
+        serveEfficiency: 78.5,
+        returnGamesWon: 34.2,
+        breakPointConversion: 41.3,
+        color: null,
+        photoUrl: "photos/federer.jpg"
       },
-      nextgen: {
-        alcaraz: {
-          name: "Carlos Alcaraz",
-          careerWinPct: 77.8,
-          grandSlamTitles: 4,
-          peakRanking: 1,
-          serveEfficiency: 75.3,
-          returnGamesWon: 36.8,
-          breakPointConversion: 43.1,
-          color: null,
-          photoUrl: "photos/alcaraz.jpg"
-        },
-        sinner: {
-          name: "Jannik Sinner",
-          careerWinPct: 74.5,
-          grandSlamTitles: 2,
-          peakRanking: 1,
-          serveEfficiency: 77.1,
-          returnGamesWon: 37.2,
-          breakPointConversion: 42.5,
-          color: null,
-          photoUrl: "photos/sinner.jpg"
-        }
+      nadal: {
+        name: "Rafael Nadal",
+        tour: "ATP",
+        careerWinPct: 83.3,
+        grandSlamTitles: 22,
+        peakRanking: 1,
+        serveEfficiency: 73.8,
+        returnGamesWon: 38.5,
+        breakPointConversion: 44.7,
+        color: null,
+        photoUrl: "photos/nadal.jpg"
+      },
+      djokovic: {
+        name: "Novak Djokovic",
+        tour: "ATP",
+        careerWinPct: 83.5,
+        grandSlamTitles: 24,
+        peakRanking: 1,
+        serveEfficiency: 76.2,
+        returnGamesWon: 40.1,
+        breakPointConversion: 45.2,
+        color: null,
+        photoUrl: "photos/djokovic.jpg"
+      },
+      alcaraz: {
+        name: "Carlos Alcaraz",
+        tour: "ATP",
+        careerWinPct: 77.8,
+        grandSlamTitles: 4,
+        peakRanking: 1,
+        serveEfficiency: 75.3,
+        returnGamesWon: 36.8,
+        breakPointConversion: 43.1,
+        color: null,
+        photoUrl: "photos/alcaraz.jpg"
+      },
+      sinner: {
+        name: "Jannik Sinner",
+        tour: "ATP",
+        careerWinPct: 74.5,
+        grandSlamTitles: 2,
+        peakRanking: 1,
+        serveEfficiency: 77.1,
+        returnGamesWon: 37.2,
+        breakPointConversion: 42.5,
+        color: null,
+        photoUrl: "photos/sinner.jpg"
+      },
+      serena: {
+        name: "Serena Williams",
+        tour: "WTA",
+        careerWinPct: 85.6,
+        grandSlamTitles: 23,
+        peakRanking: 1,
+        serveEfficiency: 79.4,
+        returnGamesWon: 40.0,
+        breakPointConversion: 44.0,
+        color: null,
+        photoUrl: "photos/serena.jpg"
+      },
+      henin: {
+        name: "Justine Henin",
+        tour: "WTA",
+        careerWinPct: 81.2,
+        grandSlamTitles: 7,
+        peakRanking: 1,
+        serveEfficiency: 72.0,
+        returnGamesWon: 39.5,
+        breakPointConversion: 45.5,
+        color: null,
+        photoUrl: "photos/henin.jpg"
+      },
+      swiatek: {
+        name: "Iga Swiatek",
+        tour: "WTA",
+        careerWinPct: 81.0,
+        grandSlamTitles: 5,
+        peakRanking: 1,
+        serveEfficiency: 74.5,
+        returnGamesWon: 42.0,
+        breakPointConversion: 46.0,
+        color: null,
+        photoUrl: "photos/swiatek.jpg"
+      },
+      sabalenka: {
+        name: "Aryna Sabalenka",
+        tour: "WTA",
+        careerWinPct: 70.0,
+        grandSlamTitles: 3,
+        peakRanking: 1,
+        serveEfficiency: 76.0,
+        returnGamesWon: 35.0,
+        breakPointConversion: 42.0,
+        color: null,
+        photoUrl: "photos/sabalenka.jpg"
+      },
+      gauff: {
+        name: "Coco Gauff",
+        tour: "WTA",
+        careerWinPct: 68.0,
+        grandSlamTitles: 1,
+        peakRanking: 2,
+        serveEfficiency: 72.5,
+        returnGamesWon: 37.5,
+        breakPointConversion: 43.0,
+        color: null,
+        photoUrl: "photos/gauff.jpg"
       }
     },
 
     ensureInit(p) {
       if (this.initialized) return;
-      
-      // Set colors matching your other viz style
-      this.playerData.big3.federer.color = p.color(2, 131, 131);
-      this.playerData.big3.nadal.color = p.color(44, 103, 230);
-      this.playerData.big3.djokovic.color = p.color(255, 228, 96);
-      this.playerData.nextgen.alcaraz.color = p.color(255, 152, 0);
-      this.playerData.nextgen.sinner.color = p.color(255, 100, 100);
-      
-      // Load player photos
-      for (let gen in this.playerData) {
-        for (let player in this.playerData[gen]) {
-          p.loadImage(this.playerData[gen][player].photoUrl, (img) => {
-            this.playerPhotos[player] = img;
-          });
-        }
+
+      // Assign colors (you can tweak these)
+      const colorMap = {
+        federer:   p.color(2, 131, 131),
+        nadal:     p.color(44, 103, 230),
+        djokovic:  p.color(255, 228, 96),
+        alcaraz:   p.color(255, 152, 0),
+        sinner:    p.color(255, 100, 100),
+        serena:    p.color(102, 45, 145),
+        henin:     p.color(0, 153, 153),
+        swiatek:   p.color(46, 204, 113),
+        sabalenka: p.color(231, 76, 60),
+        gauff:     p.color(155, 89, 182)
+      };
+
+      for (let key in this.playerData) {
+        this.playerData[key].color = colorMap[key] || p.color(120);
+        p.loadImage(this.playerData[key].photoUrl, (img) => {
+          this.playerPhotos[key] = img;
+        });
       }
-      
+
+      // Default selection = first player in list
+      this.selectedPlayer = this.playerOrder[0];
+
       this.initialized = true;
     },
 
     draw(p, manager, ai, progress) {
       this.ensureInit(p);
-      
-      p.background(240);  // Light gray background like your other viz
-      
-      // Draw all components
+      p.background(240);
+
       this.drawTitle(p);
-      this.drawToggleButton(p);
-      this.drawPlayerCards(p);
-      
-      if (this.selectedPlayer) {
-        this.drawMetricsComparison(p);
-      } else {
-        this.drawInstructions(p);
-      }
+      this.drawPlayerList(p);
+      this.drawPlayerDetail(p);
     },
 
     drawTitle(p) {
@@ -116,231 +188,221 @@
       p.textSize(18);
       p.textAlign(p.CENTER, p.CENTER);
       p.noStroke();
-      p.text("Big 3 vs. Next Gen: Comparing Tennis Dominance", p.width / 2, 25);
-      
+      p.text("Player Dashboard: Explore Dominance by Player", p.width / 2, 25);
+
       p.textSize(11);
       p.fill(100);
-      p.text("Click a player card or toggle button to explore", p.width / 2, 45);
+      p.text(
+        "Click a name on the left to see that player’s profile.",
+        p.width / 2,
+        45
+      );
       p.pop();
     },
 
-    drawToggleButton(p) {
-      const toggleX = p.width / 2 - 80;
-      const toggleY = 65;
-      const toggleW = 160;
-      const toggleH = 32;
-      
+    // Left-hand column of names
+    drawPlayerList(p) {
+      const panelX = 20;
+      const panelY = 80;
+      const panelW = 200;
+      const itemH = 32;
+      const itemSpacing = 6;
+
       p.push();
-      
-      // Check if mouse is hovering
-      const isHovering = p.mouseX > toggleX && p.mouseX < toggleX + toggleW &&
-                        p.mouseY > toggleY && p.mouseY < toggleY + toggleH;
-      
-      // Toggle background - subtle colors
-      if (this.currentGeneration === "big3") {
-        p.fill(isHovering ? p.color(44, 103, 230) : p.color(70, 130, 240));
-      } else {
-        p.fill(isHovering ? p.color(255, 120, 0) : p.color(255, 152, 0));
-      }
+
+      // Panel background
       p.noStroke();
-      p.rect(toggleX, toggleY, toggleW, toggleH, 4);
-      
-      // Toggle labels
-      p.fill(255);
-      p.textSize(13);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.text(this.currentGeneration === "big3" ? "BIG 3" : "NEXT GEN", 
-             toggleX + toggleW / 2, toggleY + toggleH / 2);
-      
-      p.pop();
-    },
+      p.fill(250);
+      p.rect(panelX - 5, panelY - 5, panelW + 10, p.height - panelY - 40, 6);
 
-    drawPlayerCards(p) {
-      const currentData = this.playerData[this.currentGeneration];
-      const players = Object.keys(currentData);
-      const cardWidth = 160;
-      const cardHeight = 240;
-      const spacing = 30;
-      const totalWidth = cardWidth * players.length + spacing * (players.length - 1);
-      const startX = (p.width - totalWidth) / 2;
-      const startY = 120;
-      
-      p.push();
-      
-      players.forEach((playerKey, index) => {
-        const player = currentData[playerKey];
-        const x = startX + (cardWidth + spacing) * index;
-        const y = startY;
-        
-        // Check if hovering
-        const isHovering = p.mouseX > x && p.mouseX < x + cardWidth &&
-                          p.mouseY > y && p.mouseY < y + cardHeight;
-        const isSelected = this.selectedPlayer === playerKey;
-        
-        // Card background - clean white cards
-        p.fill(255);
-        p.stroke(isSelected ? player.color : (isHovering ? 150 : 200));
-        p.strokeWeight(isSelected ? 3 : 1);
-        p.rect(x, y, cardWidth, cardHeight, 4);
-        
-        // Player photo
-        if (this.playerPhotos[playerKey]) {
-          p.image(this.playerPhotos[playerKey], x + 10, y + 10, 140, 140);
+      this.playerOrder.forEach((key, index) => {
+        const player = this.playerData[key];
+        const y = panelY + index * (itemH + itemSpacing);
+        const x = panelX;
+
+        const isHover =
+          p.mouseX > x &&
+          p.mouseX < x + panelW &&
+          p.mouseY > y &&
+          p.mouseY < y + itemH;
+        const isSelected = this.selectedPlayer === key;
+
+        // Button background
+        if (isSelected) {
+          p.fill(player.color);
+        } else if (isHover) {
+          p.fill(220);
         } else {
-          // Placeholder if image not loaded
-          p.fill(230);
-          p.noStroke();
-          p.rect(x + 10, y + 10, 140, 140, 2);
-          p.fill(150);
-          p.textAlign(p.CENTER, p.CENTER);
-          p.textSize(10);
-          p.text("Loading...", x + 80, y + 80);
+          p.fill(235);
         }
-        
-        // Color indicator bar
+        p.stroke(isSelected ? player.color : 210);
+        p.strokeWeight(isSelected ? 2 : 1);
+        p.rect(x, y, panelW, itemH, 4);
+
+        // Text
         p.noStroke();
-        p.fill(player.color);
-        p.rect(x + 10, y + 155, 140, 3);
-        
-        // Player name
-        p.fill(40);
-        p.textSize(14);
-        p.textAlign(p.CENTER, p.CENTER);
-        p.text(player.name, x + cardWidth / 2, y + 172);
-        
-        // Key stats - compact layout
-        p.textSize(10);
-        p.fill(80);
         p.textAlign(p.LEFT, p.CENTER);
-        p.text("Slams:", x + 15, y + 195);
-        p.text("Win %:", x + 15, y + 210);
-        p.text("Peak:", x + 15, y + 225);
-        
-        p.textAlign(p.RIGHT, p.CENTER);
-        p.fill(40);
-        p.text(player.grandSlamTitles, x + cardWidth - 15, y + 195);
-        p.text(`${player.careerWinPct}%`, x + cardWidth - 15, y + 210);
-        p.text(`#${player.peakRanking}`, x + cardWidth - 15, y + 225);
+        p.textSize(12);
+        p.fill(isSelected ? 255 : 40);
+        const label = `${player.name} (${player.tour})`;
+        p.text(label, x + 10, y + itemH / 2);
       });
-      
+
       p.pop();
     },
 
-    drawMetricsComparison(p) {
-      const currentData = this.playerData[this.currentGeneration];
-      const player = currentData[this.selectedPlayer];
-      
-      const metricsY = 390;
-      const metrics = [
-        { label: "Career Win %", value: player.careerWinPct, max: 100, unit: "%" },
-        { label: "Serve Efficiency", value: player.serveEfficiency, max: 100, unit: "%" },
-        { label: "Return Games Won", value: player.returnGamesWon, max: 50, unit: "%" },
-        { label: "Break Point Conv.", value: player.breakPointConversion, max: 60, unit: "%" }
-      ];
-      
+    // Right-hand detail view
+    drawPlayerDetail(p) {
+      const key = this.selectedPlayer;
+      if (!key) return;
+
+      const player = this.playerData[key];
+
+      const detailX = 240;            // left edge of the detail area
+      const detailY = 80;
+      const detailW = p.width - detailX - 20;
+
       p.push();
-      
-      // Section title
-      p.fill(40);
-      p.textSize(15);
-      p.textAlign(p.CENTER, p.CENTER);
+
+      // Panel background
       p.noStroke();
-      p.text(`${player.name} — Detailed Statistics`, p.width / 2, metricsY - 15);
-      
-      // Draw bar charts for each metric - horizontal layout like scatter plot
-      const barWidth = 280;
-      const barHeight = 20;
-      const startX = p.width / 2 - 140;
-      const startY = metricsY + 15;
-      
-      metrics.forEach((metric, index) => {
-        const y = startY + index * 45;
-        
+      p.fill(255);
+      p.rect(detailX - 5, detailY - 5, detailW + 10, p.height - detailY - 40, 6);
+
+      // Photo
+      const photoW = 180;
+      const photoH = 220;
+      const photoX = detailX + 20;
+      const photoY = detailY + 10;
+
+      if (this.playerPhotos[key]) {
+        p.image(this.playerPhotos[key], photoX, photoY, photoW, photoH);
+      } else {
+        p.fill(230);
+        p.rect(photoX, photoY, photoW, photoH, 4);
+        p.fill(150);
+        p.textAlign(p.CENTER, p.CENTER);
+        p.textSize(12);
+        p.text("Loading photo...", photoX + photoW / 2, photoY + photoH / 2);
+      }
+
+      // Name + summary stats to the right of the photo
+      const textBlockX = photoX + photoW + 25;
+      const textBlockY = photoY;
+
+      p.fill(40);
+      p.textAlign(p.LEFT, p.TOP);
+
+      // Name
+      p.textSize(18);
+      p.text(player.name, textBlockX, textBlockY);
+
+      // Tour + summary stats
+      p.textSize(12);
+      p.fill(90);
+      const summaryY = textBlockY + 28;
+
+      p.text(
+        `Tour: ${player.tour}`,
+        textBlockX,
+        summaryY
+      );
+      p.text(
+        `Grand Slam titles: ${player.grandSlamTitles}`,
+        textBlockX,
+        summaryY + 18
+      );
+      p.text(
+        `Best year-end ranking: #${player.peakRanking}`,
+        textBlockX,
+        summaryY + 36
+      );
+      p.text(
+        `Career win percentage: ${player.careerWinPct}%`,
+        textBlockX,
+        summaryY + 54
+      );
+
+      // Metrics bars
+      const metrics = [
+        { label: "Serve efficiency",  value: player.serveEfficiency,      max: 100, unit: "%" },
+        { label: "Return games won",  value: player.returnGamesWon,       max: 50,  unit: "%" },
+        { label: "Break point conv.", value: player.breakPointConversion, max: 60,  unit: "%" }
+      ];
+
+      const barsStartY = photoY + photoH + 20; // below the photo
+      const barWidth = detailW - 60;
+      const barHeight = 18;
+      const barStartX = detailX + 30;
+
+      p.textAlign(p.LEFT, p.CENTER);
+
+      metrics.forEach((m, i) => {
+        const y = barsStartY + i * 40;
+
         // Label
         p.fill(60);
         p.textSize(11);
-        p.textAlign(p.LEFT, p.CENTER);
-        p.text(metric.label, startX - 150, y + barHeight / 2);
-        
-        // Bar background - light gray
-        p.fill(220);
-        p.noStroke();
-        p.rect(startX, y, barWidth, barHeight, 3);
-        
-        // Bar fill - use player color
-        p.fill(player.color);
-        const fillWidth = p.map(metric.value, 0, metric.max, 0, barWidth);
-        p.rect(startX, y, fillWidth, barHeight, 3);
-        
-        // Border around bar
-        p.noFill();
-        p.stroke(180);
-        p.strokeWeight(1);
-        p.rect(startX, y, barWidth, barHeight, 3);
-        
-        // Value text
-        p.fill(40);
-        p.noStroke();
-        p.textAlign(p.RIGHT, p.CENTER);
-        p.textSize(11);
-        p.text(`${metric.value.toFixed(1)}${metric.unit}`, startX + barWidth + 45, y + barHeight / 2);
-      });
-      
-      p.pop();
-    },
+        p.text(m.label, barStartX, y - 10);
 
-    drawInstructions(p) {
-      p.push();
-      p.fill(120);
-      p.textSize(12);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.noStroke();
-      p.text("← Click a player card to view detailed metrics", p.width / 2, 470);
+        // Background
+        p.fill(230);
+        p.noStroke();
+        p.rect(barStartX, y, barWidth, barHeight, 3);
+
+        // Value fill
+        const fillWidth = p.map(m.value, 0, m.max, 0, barWidth);
+        p.fill(player.color);
+        p.rect(barStartX, y, fillWidth, barHeight, 3);
+
+        // Border
+        p.noFill();
+        p.stroke(200);
+        p.rect(barStartX, y, barWidth, barHeight, 3);
+
+        // Value text
+        p.noStroke();
+        p.fill(40);
+        p.textAlign(p.RIGHT, p.CENTER);
+        p.text(
+          `${m.value.toFixed(1)}${m.unit}`,
+          barStartX + barWidth,
+          y + barHeight / 2
+        );
+        p.textAlign(p.LEFT, p.CENTER);
+      });
+
       p.pop();
     },
 
     handleClick(p) {
-      // Check toggle button click
-      const toggleX = p.width / 2 - 80;
-      const toggleY = 65;
-      const toggleW = 160;
-      const toggleH = 32;
-      
-      if (p.mouseX > toggleX && p.mouseX < toggleX + toggleW &&
-          p.mouseY > toggleY && p.mouseY < toggleY + toggleH) {
-        this.currentGeneration = this.currentGeneration === "big3" ? "nextgen" : "big3";
-        this.selectedPlayer = null;
-        return true;
-      }
-      
-      // Check player card clicks
-      const currentData = this.playerData[this.currentGeneration];
-      const players = Object.keys(currentData);
-      const cardWidth = 160;
-      const cardHeight = 240;
-      const spacing = 30;
-      const totalWidth = cardWidth * players.length + spacing * (players.length - 1);
-      const startX = (p.width - totalWidth) / 2;
-      const startY = 120;
-      
-      players.forEach((playerKey, index) => {
-        const x = startX + (cardWidth + spacing) * index;
-        const y = startY;
-        
-        if (p.mouseX > x && p.mouseX < x + cardWidth &&
-            p.mouseY > y && p.mouseY < y + cardHeight) {
-          this.selectedPlayer = playerKey;
+      // Only need to check clicks on left-hand buttons
+      const panelX = 20;
+      const panelY = 80;
+      const panelW = 200;
+      const itemH = 32;
+      const itemSpacing = 6;
+
+      this.playerOrder.forEach((key, index) => {
+        const x = panelX;
+        const y = panelY + index * (itemH + itemSpacing);
+
+        if (
+          p.mouseX > x &&
+          p.mouseX < x + panelW &&
+          p.mouseY > y &&
+          p.mouseY < y + itemH
+        ) {
+          this.selectedPlayer = key;
         }
       });
-      
+
       return false;
     },
 
-    // Method to load real data from CSV when ready
+    // If later you want to load real CSV and override stats
     loadRealData(table) {
-      // TODO: Process your CSV data here
-      // Transform it into the playerData structure
-      console.log("Load your real tennis data here from CSV");
+      console.log("Transform your CSV into playerData here");
     }
   };
 

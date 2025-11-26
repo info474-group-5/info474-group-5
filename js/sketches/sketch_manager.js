@@ -40,14 +40,15 @@ function startP5() {
             p.mousePressed = function () {
                 var ai = self.state.activeIndex || 0;
 
-                if (ai === 4 && window.Viz_RQ2_RanksSlams) {
+                if (ai === 8 && window.Viz_RQ2_RanksSlams) {
                     window.Viz_RQ2_RanksSlams.handleClick(p);
                     return false;
                 }
-                // Handle clicks for RQ2B dashboard (section 5)
-                if (ai === 5 && window.Viz_RQ2B_Dashboard) {
+
+                // Section 9: RQ2B dashboard
+                if (ai === 9 && window.Viz_RQ2B_Dashboard) {
                     window.Viz_RQ2B_Dashboard.handleClick(p);
-                    return false; // Prevent default behavior
+                    return false;
                 }
 
                 if (ai === 7 && window.Viz_RQ3_b) {
