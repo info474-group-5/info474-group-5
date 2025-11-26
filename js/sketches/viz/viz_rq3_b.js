@@ -195,5 +195,5 @@
             p.pop();
         }
     };
-    window.Viz_rq3_b = Viz;
+    window.Viz_RQ3_b = Viz;
 })();

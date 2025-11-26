@@ -31,54 +31,54 @@
             
             // Section 3: RQ3B
             if (ai === 3) {
-                window.Viz_rq3_b.draw(p, manager, ai, progress);
+                window.Viz_RQ3_b.draw(p, manager, ai, progress);
                 return;
             }
 
             
-            if (ai === 4) {
-                // Place holder visualization because actual RQ3_B isn't rendering
-                window.VizRQ1_AggScatter.draw(p, manager, ai, progress);
-                return;
-            }
+            // if (ai === 4) {
+            //     // Place holder visualization because actual RQ3_B isn't rendering
+            //     window.VizRQ1_AggScatter.draw(p, manager, ai, progress);
+            //     return;
+            // }
 
             // Section 4: RQ1
-            if (ai === 5) {
+            if (ai === 4) {
                 // Place holder for picture
                 return;
             }
 
             // Section 5: RQ1_A
-            if (ai === 6) {
+            if (ai === 5) {
                 window.VizRQ1_AcesTrend.draw(p, manager, ai, progress);
                 return;
             }
 
             // Section 6: RQ1_B
-            if (ai === 7) {
+            if (ai === 6) {
                 window.VizRQ1_AggScatter.draw(p, manager, ai, progress);
                 return;
             }
 
             // Section 7: RQ2
-            if (ai === 8) {
+            if (ai === 7) {
                 return;
             }
 
             // Section 8: RQ2_A Rankings & Slam Trajectories
-            if (ai === 9) {
+            if (ai === 8) {
                 window.Viz_RQ2_RanksSlams.draw(p, manager, ai, progress);
                 return;
             }
 
             // Section 9: RQ2_B Player Dashboard
-            if (ai === 10) {
+            if (ai === 9) {
                 window.Viz_RQ2B_Dashboard.draw(p, manager, ai, progress);
                 return;
             }
 
             // Section 10: Conclusion
-            if (ai === 11) {
+            if (ai === 10) {
                 window.VizBar.draw(p, manager, ai, progress);
                 return;
             }
