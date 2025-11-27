@@ -1,4 +1,3 @@
-
 // Player Dashboard: Simple List + Detail View
 (function () {
   const Viz = {
@@ -24,120 +23,150 @@
       federer: {
         name: "Roger Federer",
         tour: "ATP",
-        careerWinPct: 82.2,
+        careerWinPct: 82,
         grandSlamTitles: 20,
         peakRanking: 1,
         serveEfficiency: 78.5,
         returnGamesWon: 34.2,
         breakPointConversion: 41.3,
+        isRetired: true,
+        retirementYear: 2022,
+        age: 43,
         color: null,
         photoUrl: "photos/federer.jpg"
       },
       nadal: {
         name: "Rafael Nadal",
         tour: "ATP",
-        careerWinPct: 83.3,
+        careerWinPct: 82.9,
         grandSlamTitles: 22,
         peakRanking: 1,
         serveEfficiency: 73.8,
         returnGamesWon: 38.5,
         breakPointConversion: 44.7,
+        isRetired: true,
+        retirementYear: 2024,
+        age: 38,
         color: null,
         photoUrl: "photos/nadal.jpg"
       },
       djokovic: {
         name: "Novak Djokovic",
         tour: "ATP",
-        careerWinPct: 83.5,
+        careerWinPct: 83.6,
         grandSlamTitles: 24,
         peakRanking: 1,
         serveEfficiency: 76.2,
         returnGamesWon: 40.1,
         breakPointConversion: 45.2,
+        isRetired: false,
+        retirementYear: null,
+        age: 37,
         color: null,
         photoUrl: "photos/djokovic.jpg"
       },
       alcaraz: {
         name: "Carlos Alcaraz",
         tour: "ATP",
-        careerWinPct: 77.8,
-        grandSlamTitles: 4,
+        careerWinPct: 79,
+        grandSlamTitles: 6,
         peakRanking: 1,
         serveEfficiency: 75.3,
         returnGamesWon: 36.8,
         breakPointConversion: 43.1,
+        isRetired: false,
+        retirementYear: null,
+        age: 21,
         color: null,
         photoUrl: "photos/alcaraz.jpg"
       },
       sinner: {
         name: "Jannik Sinner",
         tour: "ATP",
-        careerWinPct: 74.5,
-        grandSlamTitles: 2,
+        careerWinPct: 77.3,
+        grandSlamTitles: 4,
         peakRanking: 1,
         serveEfficiency: 77.1,
         returnGamesWon: 37.2,
         breakPointConversion: 42.5,
+        isRetired: false,
+        retirementYear: null,
+        age: 23,
         color: null,
         photoUrl: "photos/sinner.jpg"
       },
       serena: {
         name: "Serena Williams",
         tour: "WTA",
-        careerWinPct: 85.6,
+        careerWinPct: 84.9,
         grandSlamTitles: 23,
         peakRanking: 1,
         serveEfficiency: 79.4,
-        returnGamesWon: 40.0,
-        breakPointConversion: 44.0,
+        returnGamesWon: 40,
+        breakPointConversion: 44,
+        isRetired: true,
+        retirementYear: 2022,
+        age: 43,
         color: null,
-        photoUrl: "photos/serena.jpg"
+        photoUrl: "photos/williams.jpg"
       },
       henin: {
         name: "Justine Henin",
         tour: "WTA",
-        careerWinPct: 81.2,
+        careerWinPct: 82.4,
         grandSlamTitles: 7,
         peakRanking: 1,
         serveEfficiency: 72.0,
         returnGamesWon: 39.5,
         breakPointConversion: 45.5,
+        isRetired: true,
+        retirementYear: 2011,
+        age: 42,
         color: null,
         photoUrl: "photos/henin.jpg"
       },
       swiatek: {
         name: "Iga Swiatek",
         tour: "WTA",
-        careerWinPct: 81.0,
-        grandSlamTitles: 5,
+        careerWinPct: 82,
+        grandSlamTitles: 6,
         peakRanking: 1,
         serveEfficiency: 74.5,
         returnGamesWon: 42.0,
         breakPointConversion: 46.0,
+        isRetired: false,
+        retirementYear: null,
+        age: 23,
         color: null,
         photoUrl: "photos/swiatek.jpg"
       },
       sabalenka: {
         name: "Aryna Sabalenka",
         tour: "WTA",
-        careerWinPct: 70.0,
-        grandSlamTitles: 3,
+        careerWinPct: 71,
+        grandSlamTitles: 4,
         peakRanking: 1,
         serveEfficiency: 76.0,
         returnGamesWon: 35.0,
         breakPointConversion: 42.0,
+        isRetired: false,
+        retirementYear: null,
+        age: 26,
         color: null,
         photoUrl: "photos/sabalenka.jpg"
       },
       gauff: {
         name: "Coco Gauff",
         tour: "WTA",
-        careerWinPct: 68.0,
-        grandSlamTitles: 1,
+        careerWinPct: 71.5,
+        grandSlamTitles: 2,
         peakRanking: 2,
         serveEfficiency: 72.5,
         returnGamesWon: 37.5,
         breakPointConversion: 43.0,
+        isRetired: false,
+        retirementYear: null,
+        age: 20,
         color: null,
         photoUrl: "photos/gauff.jpg"
       }
@@ -148,16 +177,16 @@
 
       // Assign colors (you can tweak these)
       const colorMap = {
-        federer:   p.color(2, 131, 131),
-        nadal:     p.color(44, 103, 230),
-        djokovic:  p.color(255, 228, 96),
-        alcaraz:   p.color(255, 152, 0),
-        sinner:    p.color(255, 100, 100),
-        serena:    p.color(102, 45, 145),
-        henin:     p.color(0, 153, 153),
-        swiatek:   p.color(46, 204, 113),
+        federer: p.color(2, 131, 131),
+        nadal: p.color(44, 103, 230),
+        djokovic: p.color(255, 228, 96),
+        alcaraz: p.color(255, 152, 0),
+        sinner: p.color(255, 100, 100),
+        serena: p.color(102, 45, 145),
+        henin: p.color(0, 153, 153),
+        swiatek: p.color(46, 204, 113),
         sabalenka: p.color(231, 76, 60),
-        gauff:     p.color(155, 89, 182)
+        gauff: p.color(155, 89, 182)
       };
 
       for (let key in this.playerData) {
@@ -227,15 +256,18 @@
           p.mouseY < y + itemH;
         const isSelected = this.selectedPlayer === key;
 
-        // Button background
+        // base color depends on tour: ATP darker gray, WTA lighter gray
+        let baseGray = player.tour === "ATP" ? 190 : 235;
+
         if (isSelected) {
           p.fill(player.color);
         } else if (isHover) {
-          p.fill(220);
+          p.fill(baseGray - 15);
         } else {
-          p.fill(235);
+          p.fill(baseGray);
         }
-        p.stroke(isSelected ? player.color : 210);
+
+        p.stroke(isSelected ? player.color : 200);
         p.strokeWeight(isSelected ? 2 : 1);
         p.rect(x, y, panelW, itemH, 4);
 
@@ -286,51 +318,66 @@
         p.text("Loading photo...", photoX + photoW / 2, photoY + photoH / 2);
       }
 
-      // Name + summary stats to the right of the photo
-      const textBlockX = photoX + photoW + 25;
-      const textBlockY = photoY;
+      // X position for text/card (based on photo)
+      const textBlockX = photoX + photoW + 40;
+
+      // Stats card: SAME SIZE, but vertically centered vs the image
+      const statsCardW = 200;
+      const statsCardH = 165;
+      const statsCardX = textBlockX - 15;
+      const statsCardY = photoY + (photoH - statsCardH) / 2;  // center
+
+      p.fill(250);                 // very soft white
+      p.stroke(210);
+      p.strokeWeight(1);
+      p.rect(statsCardX, statsCardY, statsCardW, statsCardH, 10);
+
+      // Now anchor text inside the card
+      const textBlockY = statsCardY + 20;
 
       p.fill(40);
+      p.noStroke();
       p.textAlign(p.LEFT, p.TOP);
 
       // Name
       p.textSize(18);
       p.text(player.name, textBlockX, textBlockY);
 
-      // Tour + summary stats
+      // Tour + summary stats with icons
       p.textSize(12);
       p.fill(90);
-      const summaryY = textBlockY + 28;
+      const summaryY = textBlockY + 26;
 
-      p.text(
-        `Tour: ${player.tour}`,
-        textBlockX,
-        summaryY
-      );
-      p.text(
-        `Grand Slam titles: ${player.grandSlamTitles}`,
-        textBlockX,
-        summaryY + 18
-      );
-      p.text(
-        `Best year-end ranking: #${player.peakRanking}`,
-        textBlockX,
-        summaryY + 36
-      );
-      p.text(
-        `Career win percentage: ${player.careerWinPct}%`,
-        textBlockX,
-        summaryY + 54
-      );
+      // 🎾 Tour
+      p.text(`🎾 Tour: ${player.tour}`, textBlockX, summaryY);
 
-      // Metrics bars
+      // 🏆 Grand Slams
+      p.text(`🏆 Grand Slams: ${player.grandSlamTitles}`, textBlockX, summaryY + 18);
+
+      // ⭐ Peak ranking
+      p.text(`⭐ Peak Ranking: #${player.peakRanking}`, textBlockX, summaryY + 36);
+
+      // 📊 Win %
+      p.text(`📊 Win %: ${player.careerWinPct}%`, textBlockX, summaryY + 54);
+
+      // 👤 Age
+      p.text(`👤 Age: ${player.age}`, textBlockX, summaryY + 72);
+
+      // ⏳ Retired / 🟢 Active
+      if (player.isRetired) {
+        p.text(`⏳ Retired: ${player.retirementYear}`, textBlockX, summaryY + 90);
+      } else {
+        p.text(`🟢 Status: Active`, textBlockX, summaryY + 90);
+      }
+
+      // Metrics bars – pushed further down for more space under photo
       const metrics = [
-        { label: "Serve efficiency",  value: player.serveEfficiency,      max: 100, unit: "%" },
-        { label: "Return games won",  value: player.returnGamesWon,       max: 50,  unit: "%" },
-        { label: "Break point conv.", value: player.breakPointConversion, max: 60,  unit: "%" }
+        { label: "Serve efficiency", value: player.serveEfficiency, max: 100, unit: "%" },
+        { label: "Return games won", value: player.returnGamesWon, max: 50, unit: "%" },
+        { label: "Break point conv.", value: player.breakPointConversion, max: 60, unit: "%" }
       ];
 
-      const barsStartY = photoY + photoH + 20; // below the photo
+      const barsStartY = photoY + photoH + 60; // more gap below picture
       const barWidth = detailW - 60;
       const barHeight = 18;
       const barStartX = detailX + 30;
