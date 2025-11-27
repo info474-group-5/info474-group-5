@@ -27,20 +27,14 @@
             if (ai === 2) {
                 window.Viz_RQ3_a.draw(p, manager, ai, progress);
                 return;
-            }   
-            
-            // Section 3: RQ3B
-            if (ai === 3) {
-                window.Viz_RQ3_b.draw(p, manager, ai, progress);
-                return;
             }
 
-            
-            // if (ai === 4) {
-            //     // Place holder visualization because actual RQ3_B isn't rendering
-            //     window.VizRQ1_AggScatter.draw(p, manager, ai, progress);
-            //     return;
-            // }
+            // Section 3: RQ3B
+            if (ai === 3) {
+                // Place holder visualization because actual RQ3_B isn't rendering
+                window.Viz_RQ3_B.draw(p, manager, ai, progress);
+                return;
+            }
 
             // Section 4: RQ1
             if (ai === 4) {
@@ -85,4 +79,3 @@
         }
     };
 })();
-
