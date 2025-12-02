@@ -36,7 +36,7 @@
                 return;
             }
 
-            // Section 4: Pace & Serving – show a static image
+            // Section 4: Pace & Serving Image
             if (ai === 4) {
                 window.Viz_RQ3_B.toggleFilters(false);
                 if (!this.section4Img) {
@@ -56,7 +56,6 @@
                 return;
             }
             
-
 
             // Section 5: RQ1_A
             if (ai === 5) {
@@ -87,9 +86,23 @@
                 return;
             }
 
-            // Section 10: Conclusion
+            // Section 10: Conclusion & Image
             if (ai === 10) {
-                window.VizBar.draw(p, manager, ai, progress);
+                window.Viz_RQ3_B.toggleFilters(false);
+                if (!this.section10Img) {
+                    this.section10Img = p.loadImage("photos/conclusion_photo.jpg");
+                }
+            
+                if (this.section10Img) {
+                    let imgW = 520;
+                    let imgH = (this.section10Img.height / this.section10Img.width) * imgW;
+            
+                    // current position:
+                    let x = manager.offsetX + 20;  // <-- THIS is what controls how far right it goes
+                    let y = manager.offsetY + 20;
+            
+                    p.image(this.section10Img, x, y, imgW, imgH);
+                }
                 return;
             }
         }
