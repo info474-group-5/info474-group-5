@@ -215,6 +215,7 @@
       p.push();
       p.fill(40);
       p.textSize(18);
+      p.textStyle(p.BOLD); 
       p.textAlign(p.CENTER, p.CENTER);
       p.noStroke();
       p.text("Player Dashboard: Explore Dominance by Player", p.width / 2, 25);
@@ -257,7 +258,7 @@
         const isSelected = this.selectedPlayer === key;
 
         // base color depends on tour: ATP darker gray, WTA lighter gray
-        let baseGray = player.tour === "ATP" ? 190 : 235;
+        let baseGray = player.tour === "ATP" ? 150 : 230;
 
         if (isSelected) {
           p.fill(player.color);
@@ -423,7 +424,6 @@
     },
 
     handleClick(p) {
-      // Only need to check clicks on left-hand buttons
       const panelX = 20;
       const panelY = 80;
       const panelW = 200;
@@ -446,11 +446,6 @@
 
       return false;
     },
-
-    // If later you want to load real CSV and override stats
-    loadRealData(table) {
-      console.log("Transform your CSV into playerData here");
-    }
   };
 
   window.Viz_RQ2B_Dashboard = Viz;
