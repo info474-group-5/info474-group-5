@@ -1,8 +1,6 @@
 // viz_rq3_b.js
 (function () {
-
     const Viz = {
-        // --- LOCAL STATE ---
         localData: null,
         isDataLoading: false,
         ATP_FILE_PATH: 'data/raw/atp_matches.csv', 
@@ -55,7 +53,7 @@
         },
 
         parseATP: function (csvText) {
-            const lines = csvText.trim().split('\r\n');
+             const lines = csvText.trim().split('\r\n');
             const headers = lines[0].split(',');
             const dataRows = lines.slice(1);
             
@@ -153,7 +151,7 @@
         },
 
         loadData: function (p, manager) {
-            if (this.isDataLoading) return;
+             if (this.isDataLoading) return;
             this.isDataLoading = true;
             
             const atpPromise = fetch(this.ATP_FILE_PATH).then(res => res.text());
@@ -202,7 +200,7 @@
         // UI and Interactivity Functions
         
         applyFilters: function(p, allData) {
-            const selectedYear = this.yearFilterSelect ? this.yearFilterSelect.value() : 'All Years';
+             const selectedYear = this.yearFilterSelect ? this.yearFilterSelect.value() : 'All Years';
             const selectedSurface = this.surfaceFilterSelect ? this.surfaceFilterSelect.value() : 'All Surfaces';
 
             let data = allData;
@@ -228,7 +226,6 @@
             
             this.filterWrapper = p.createElement('div');
             this.filterWrapper.id('rq3b-filters-wrapper');
-            this.filterWrapper.style('margin-bottom', '10px');
             this.filterWrapper.parent(parentDiv); 
             
             this.toggleFilters(false);
@@ -340,13 +337,27 @@
                 p.text('No data available for current filter selection.', manager.width / 2, manager.height / 2);
                 return;
             }
-     
-            const plotX = manager.offsetX; 
-            const plotY = manager.offsetY + 30; 
+       
+            p.fill(0);
+            p.textAlign(p.LEFT, p.TOP);
+            p.textSize(18);
+            const titleX = manager.offsetX + 150;
+            const titleY = manager.offsetY + 30; // 30 pixels from the top of the manager area
+            p.text('Top Tennis Players Game Win Rates by Year and Surface', titleX, titleY);
+   
+            // Increased plotX for Y-axis label space (Player Names)
+            const plotX = manager.offsetX + 150; 
+            // Set plotY to allow space for the title
+            const plotY = manager.offsetY + 80; 
  
-            const availablePlotWidth = manager.width * 0.8; 
-            const availablePlotHeight = manager.height - 30; 
-
+            // Reserve space for the legend on the right
+            const legendMargin = 120;
+            const availablePlotWidth = manager.width - plotX - legendMargin; 
+            
+            // Reserve 80 pixels at the bottom for rotated x-axis labels
+            const bottomMargin = 80; 
+            const availablePlotHeight = manager.height - plotY - bottomMargin; 
+            
             const num_cols = Array.from(new Set(data.map(d => d.Year))).length;
             const num_rows = Array.from(new Set(data.map(d => `${d.Player}-${d.Surface}`))).length; 
             const years = Array.from(new Set(data.map(d => d.Year))).sort((a, b) => a - b);
@@ -355,6 +366,7 @@
             const minCellWidth = 15;
             const minCellHeight = 15;
 
+            // Calculate cell sizes based on available space
             const idealCellHeight = availablePlotHeight / num_rows;
             let finalCellHeight;
             let finalPlotHeight;
@@ -417,8 +429,9 @@
 
             p.pop();
 
-            const canvasBottomY = plotY + availablePlotHeight; 
+            const canvasBottomY = plotY + finalPlotHeight; 
             
+            // X-Axis Labels (Years)
             p.fill(0);
             p.textSize(10);
             p.textAlign(p.CENTER, p.TOP);
@@ -431,7 +444,8 @@
                 p.pop();
             });
 
-            const maxNameWidth = manager.offsetX - 5; 
+            // Y-Axis Labels (Player - Surface)
+            const maxNameWidth = plotX - 5; 
             p.textAlign(p.RIGHT, p.CENTER);
             p.textSize(10);
 
@@ -440,10 +454,10 @@
                 const [player, surface] = label.split('-');
                 let name = `${player} (${surface})`;
         
-                if (p.textWidth(name) > maxNameWidth) {
+                if (p.textWidth(name) > maxNameWidth - manager.offsetX) {
                     let truncatedName = '';
                     for(let char of name) {
-                        if (p.textWidth(truncatedName + char + '...') < maxNameWidth) {
+                        if (p.textWidth(truncatedName + char + '...') < maxNameWidth - manager.offsetX) {
                             truncatedName += char;
                         } else {
                             name = truncatedName + '...';
@@ -457,9 +471,11 @@
             this.checkHover(p, plotX, plotY, finalCellWidth, finalCellHeight, years, y_axis_labels);
             this.drawTooltip(p);
     
+            // Legend
             const legendWidth = 20;
-            const legendHeight = availablePlotHeight / 2; 
-            const legendX = plotX + finalPlotWidth + 50;
+            const legendHeight = finalPlotHeight / 2; 
+            // Positioned based on the final plot width and the reserved margin
+            const legendX = plotX + finalPlotWidth + 20;
             const legendY = plotY;
 
             p.textSize(10);
@@ -482,6 +498,15 @@
             p.fill(0);
             p.textAlign(p.LEFT, p.CENTER);
             p.text('No Data', legendX + legendWidth + 5, legendY + legendHeight + 20 + legendWidth / 2);
+            
+
+            if (this.filterWrapper) {
+                const filterX = plotX; 
+                const filterY = canvasBottomY + 50; 
+                this.filterWrapper.position(filterX, filterY);
+                this.filterWrapper.style('width', `${finalPlotWidth}px`); 
+                this.filterWrapper.style('text-align', 'left'); 
+            }
         }
     };
     window.Viz_RQ3_B = Viz;

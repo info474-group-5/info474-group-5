@@ -27,39 +27,34 @@
     },
     SLAMS_COLOR_MAP: {},
 
+    // Cache for map boundaries to ensure responsive scaling
+    _mapBounds: { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity, calculated: false },
+
     draw: function (p, manager, ai, progress) {
       p.push();
-
-      // --- 1. Layout Setup ---
-      const initialLeftOffset = 250;
-      const left = manager.offsetX || initialLeftOffset;
-      const top = manager.offsetY || 20;
-      const totalCanvasWidth = 900;
-      const w = manager.width || (totalCanvasWidth - initialLeftOffset - 20);
-      const h = manager.height || 480;
-
-      // Define Chart Area (Map region) - REDUCED MARGINS FOR LARGER MAP
-      const chartMargin = { top: 80, bottom: 5, left: 10, right: 130 }; // Margins reduced from 20/140 to 5/130
-      const chartW = w - chartMargin.left - chartMargin.right;
-      const chartH = h - chartMargin.top - chartMargin.bottom;
-      const chartY = top + chartMargin.top;
-
+      const fixedMargin = 20;
+      const top = manager.offsetY || fixedMargin;
+      
+      // Use full available width/height for the container
+      const w = manager.width || 750;
+      const h = manager.height || 500;
+      
       // Initialize cache
       manager._rq3a = manager._rq3a || {
         wta: null,
-        countryPowerIndex: {}, 
-        maxPower: 0,           
+        countryPowerIndex: {},
+        maxPower: 0,
         loading: true,
         processed: false,
         cachedWidth: 0,
+        cachedHeight: 0,
         powerMin: 0,
       };
       const cache = manager._rq3a;
-      
-      const accentColor = p.color(2, 131, 131); // Dark Teal/Cyan 
-      const noDataColor = '#D0D0D0'; // Light Gray
 
-      // --- 1.5. Initialize Colors ---
+      const accentColor = p.color(2, 131, 131);
+      const noDataColor = '#D0D0D0';
+
       if (!Viz.SLAMS_COLOR_MAP.Hard) {
           Viz.SLAMS_COLOR_MAP = {
               'Hard': p.color(255, 165, 0),
@@ -68,8 +63,6 @@
           };
       }
 
-
-      // --- 2. Data Loading ---
       if (cache.loading) {
         if (cache.wta === null) {
           p.loadTable("data/raw/wta-grandslam.csv", 'csv', 'header', function (tbl) {
@@ -80,39 +73,45 @@
         }
         p.textSize(16);
         p.fill(100);
-        p.text("Loading tennis data...", left, top + 40);
+        p.text("Loading tennis data...", fixedMargin, top + 40);
         p.pop();
         return;
       }
 
-      // --- 3. Map Processing (Auto-Scale) ---
-      // Rerun map processing if dimensions have changed
+      // Map margins: Space for Title/Subtitle above (70px) and Legend on right (150px)
+      const titleHeight = 70;
+      const legendWidth = 150;
+      const sidePadding = 20;
+
+      // Available space for the map itself
+      const chartW = w - legendWidth - 2 * sidePadding;
+      const chartH = h - titleHeight - fixedMargin;
+
+      const chartX = fixedMargin;
+      const chartY = top + titleHeight;
+
       if (window.country && (!cache.processed || cache.cachedWidth !== w || cache.cachedHeight !== h)) {
         Viz.processMapPolygons(window.country, chartW, chartH);
         cache.processed = true;
         cache.cachedWidth = w;
-        cache.cachedHeight = h; // Added height check for full redraw
+        cache.cachedHeight = h;
       }
 
-      // --- 4. Drawing ---
-      
-      // A. Title
       p.noStroke();
       p.fill(30);
       p.textSize(20);
       p.textStyle(p.BOLD);
       p.textAlign(p.LEFT, p.TOP);
-      p.text("Global Player Power Index Breakdown by Court Surface", left, top);
+      p.text("Global Player Power Index Breakdown by Court Surface", fixedMargin, top);
       p.textStyle(p.NORMAL);
       p.textSize(14);
       p.fill(80);
-      p.text("Colored countries have player data. Hover to see the surface-specific Power Index.", left, top + 28);
+      p.text("Colored countries have player data. Hover to see the surface-specific Power Index.", fixedMargin, top + 28);
 
-      // B. Map
       p.push();
-      p.translate(left + chartMargin.left, chartY); // Use 'left' for the starting horizontal position
-      
-      let hoverNode = null; 
+      p.translate(chartX, chartY);
+
+      let hoverNode = null;
 
       if (!window.country || !cache.processed) {
         p.fill(200, 0, 0);
@@ -121,9 +120,9 @@
         // Draw Countries
         p.stroke(255);
         p.strokeWeight(0.5);
-        
+
         // Mouse coordinates relative to the translated map origin
-        const mouseXRel = p.mouseX - (left + chartMargin.left); 
+        const mouseXRel = p.mouseX - chartX;
         const mouseYRel = p.mouseY - chartY;
         const mouseVec = p.createVector(mouseXRel, mouseYRel);
 
@@ -131,34 +130,30 @@
           if (!c.polygons) continue;
 
           const countryData = cache.countryPowerIndex[c.name];
-          
+
           let isHover = c.polygons.some(poly => pointInPoly(poly, mouseVec));
           let fillColor;
 
           if (countryData && countryData.overall_match_count > 0) {
-            // Case 1: Country with Player Power Index data (Use single Accent Color)
             fillColor = accentColor;
-            fillColor.setAlpha(isHover ? 255 : 200); // Highlight on hover
+            fillColor.setAlpha(isHover ? 255 : 200);
 
             if (isHover) {
-              // Trigger Tooltip with surface breakdown
-              hoverNode = { 
+              hoverNode = {
                 name: c.name,
                 overall_power: countryData.overall_power,
                 match_count: countryData.overall_match_count,
                 hard_power: countryData.Hard_power,
                 clay_power: countryData.Clay_power,
                 grass_power: countryData.Grass_power,
-                // Use global mouse coordinates for the tooltip placement
-                px: p.mouseX, 
-                py: p.mouseY            
+                px: p.mouseX,
+                py: p.mouseY
               };
             }
           } else {
-            // Case 2: No Player Presence or Data
-            fillColor = noDataColor; 
+            fillColor = noDataColor;
           }
-          
+
           p.fill(fillColor);
 
           // Draw the polygons
@@ -172,22 +167,22 @@
         }
       }
 
-      p.pop(); // End Map Translate
+      p.pop();
 
-      // --- 5. Legend (Right Side) ---
-      // NOTE: Legend position remains the same relative to the total chart width
       p.push();
-      p.translate(left + chartW + 10, chartY); 
-      
+      // Position: chartX (start) + chartW (width) + 10 (margin)
+      const legendX = chartX + chartW + 10;
+      p.translate(legendX, chartY);
+
       p.fill(0);
       p.textAlign(p.LEFT, p.TOP);
       p.textSize(14);
       p.textStyle(p.BOLD);
       p.text("Legend", 0, 0);
       p.textStyle(p.NORMAL);
-      
+
       let ly = 25;
-      
+
       // Data Available
       p.fill(accentColor);
       p.rect(0, ly, 12, 12);
@@ -214,7 +209,6 @@
 
       p.pop();
 
-      // --- 6. Tooltip ---
       if (hoverNode) {
           drawTooltip(p, hoverNode);
       }
@@ -222,7 +216,6 @@
       p.pop();
     },
 
-    // --- Data Processing (Calculates Overall and Surface-Specific Power Index for ALL countries) ---
     processData: function (cache) {
       let groupedByCountry = {};
       let maxOverallPower = 0;
@@ -230,8 +223,8 @@
       for (let r = 0; r < cache.wta.getRowCount(); r++) {
           const wIOC = cache.wta.getString(r, 'winner_ioc').trim().toUpperCase();
           const lIOC = cache.wta.getString(r, 'loser_ioc').trim().toUpperCase();
-          const surface = cache.wta.getString(r, 'surface').trim().toUpperCase(); 
-          
+          const surface = cache.wta.getString(r, 'surface').trim().toUpperCase();
+
           if (!Viz.SURFACES.map(s => s.toUpperCase()).includes(surface)) continue;
 
           const getVal = (col) => {
@@ -243,32 +236,32 @@
           const wA = getVal('w_ace');
           const lA = getVal('l_ace');
           const totalMatchAces = wA + lA;
-          
-          if (totalMatchAces < 0) continue; 
+
+          if (totalMatchAces < 0) continue;
 
           // Function to aggregate data for a single country's IOC
           const aggregateCountry = (ioc) => {
               const fullName = Viz.IOC_TO_FULL_NAME[ioc];
               if (!fullName) return;
 
-              groupedByCountry[fullName] = groupedByCountry[fullName] || { 
-                  total_aces: 0, 
-                  match_count: 0, 
+              groupedByCountry[fullName] = groupedByCountry[fullName] || {
+                  total_aces: 0,
+                  match_count: 0,
                   HARD_aces: 0, HARD_count: 0,
                   CLAY_aces: 0, CLAY_count: 0,
                   GRASS_aces: 0, GRASS_count: 0,
-                  fullName: fullName 
+                  fullName: fullName
               };
-              
+
               // Overall Aggregation
               groupedByCountry[fullName].total_aces += totalMatchAces;
               groupedByCountry[fullName].match_count++;
-              
+
               // Surface-Specific Aggregation (using uppercase keys)
               groupedByCountry[fullName][surface + '_aces'] += totalMatchAces;
               groupedByCountry[fullName][surface + '_count']++;
           };
-          
+
           aggregateCountry(wIOC);
           aggregateCountry(lIOC);
       }
@@ -278,49 +271,49 @@
       Object.values(groupedByCountry).forEach(d => {
           d.overall_power = d.match_count > 0 ? d.total_aces / d.match_count : 0;
           d.overall_match_count = d.match_count;
-          
+
           // Calculate Surface-Specific Power Indices (using standard case for display)
           d.Hard_power = d.HARD_count > 0 ? d.HARD_aces / d.HARD_count : 0;
           d.Clay_power = d.CLAY_count > 0 ? d.CLAY_aces / d.CLAY_count : 0;
           d.Grass_power = d.GRASS_count > 0 ? d.GRASS_aces / d.GRASS_count : 0;
-          
+
           cache.countryPowerIndex[d.fullName] = d;
           if (d.overall_power > maxOverallPower) maxOverallPower = d.overall_power;
       });
-      
-      cache.maxPower = maxOverallPower * 1.05; 
+
+      cache.maxPower = maxOverallPower * 1.05;
     },
 
-    // --- Map Processing (Unchanged, but re-runs if container size changes) ---
     processMapPolygons: function(countries, w, h) {
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-
-        // Pass 1: Parse points to find bounds
-        for (let c of countries) {
-            let cx = 0, cy = 0;
-            for (let node of c.vertexPoint) {
-                if (!Array.isArray(node)) continue;
-                let command = node[0];
-                if (command === "m") {
-                    cx += node[1]; cy += node[2];
-                } else if (command === "M") {
-                    cx = node[1]; cy = node[2];
-                } else if (typeof command === 'number') {
-                    cx += node[0]; cy += node[1];
+        // Only calculate bounds once
+        if (!Viz._mapBounds.calculated) {
+            for (let c of countries) {
+                let cx = 0, cy = 0;
+                for (let node of c.vertexPoint) {
+                    if (!Array.isArray(node)) continue;
+                    let command = node[0];
+                    if (command === "m") {
+                        cx += node[1]; cy += node[2];
+                    } else if (command === "M") {
+                        cx = node[1]; cy = node[2];
+                    } else if (typeof command === 'number') {
+                        cx += node[0]; cy += node[1];
+                    }
+                    Viz._mapBounds.minX = Math.min(Viz._mapBounds.minX, cx);
+                    Viz._mapBounds.maxX = Math.max(Viz._mapBounds.maxX, cx);
+                    Viz._mapBounds.minY = Math.min(Viz._mapBounds.minY, cy);
+                    Viz._mapBounds.maxY = Math.max(Viz._mapBounds.maxY, cy);
                 }
-                minX = Math.min(minX, cx);
-                maxX = Math.max(maxX, cx);
-                minY = Math.min(minY, cy);
-                maxY = Math.max(maxY, cy);
             }
+            Viz._mapBounds.calculated = true;
         }
 
-        // 2. Determine Scale Factor to fit container
+        const { minX, maxX, minY, maxY } = Viz._mapBounds;
+
         const dataW = maxX - minX;
         const dataH = maxY - minY;
         const scale = Math.min(w / dataW, h / dataH);
-        
-        // 3. Second pass: Generate Screen Polygons
+
         for (let c of countries) {
             c.polygons = [];
             let cx = 0, cy = 0;
@@ -353,7 +346,7 @@
                 } else if (typeof command === 'number') {
                     cx += node[0]; cy += node[1];
                     addPoint(cx, cy);
-                } 
+                }
             }
             if (currentPoly.length > 0) c.polygons.push(currentPoly);
         }
@@ -376,7 +369,7 @@
   function drawTooltip(p, node) {
       // Helper function for display
       const displayValue = (val) => val > 0 ? val.toFixed(2) : 'N/A';
-      
+
       const lines = [
           node.name,
           `Total Matches Contributed: ${node.match_count}`,
@@ -390,16 +383,16 @@
       p.textSize(12);
       let mw = 0;
       for(let l of lines) mw = Math.max(mw, p.textWidth(l));
-      
+
       const bx = node.px + 10;
-      const by = node.py - 10 - (lines.length * 16); 
+      const by = node.py - 10 - (lines.length * 16);
       const bw = mw + 16;
       const bh = lines.length * 16 + 10;
 
       p.fill(255, 230);
       p.stroke(0, 100);
       p.rect(bx, by, bw, bh, 5);
-      
+
       p.noStroke();
       p.fill(0);
       p.textAlign(p.LEFT, p.TOP);
