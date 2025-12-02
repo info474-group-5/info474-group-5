@@ -47,6 +47,13 @@ function startP5() {
                     }
                 }
 
+                // Section 6: RQ1B Aggression Scatter (play button)
+                if (ai === 6 && window.VizRQ1_AggScatter) {
+                    if (window.VizRQ1_AggScatter.handleClick(p)) {
+                        return false;
+                    }
+                }
+
                 if (ai === 8 && window.Viz_RQ2_RanksSlams) {
                     window.Viz_RQ2_RanksSlams.handleClick(p);
                     return false;
