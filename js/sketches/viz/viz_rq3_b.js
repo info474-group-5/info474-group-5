@@ -151,16 +151,29 @@
         },
 
         loadData: function (p, manager) {
-             if (this.isDataLoading) return;
+            if (this.isDataLoading) return;
             this.isDataLoading = true;
             
-            const atpPromise = fetch(this.ATP_FILE_PATH).then(res => res.text());
-            const wtaPromise = fetch(this.WTA_FILE_PATH).then(res => res.text());
+            // --- MODIFIED TO USE P5.JS LOADSTRINGS FOR BETTER LOCAL FILE COMPATIBILITY ---
+            
+            const handleLoadError = (error) => {
+                console.error('Viz_RQ3_B: Error loading or parsing data. Please note that the most reliable solution for cross-device loading is to run the visualization from a local web server (e.g., Python\'s http.server) to avoid browser security restrictions.', error);
+                this.localData = []; 
+                this.filteredData = [];
+                this.isDataLoading = false;
+            };
 
-            Promise.all([atpPromise, wtaPromise])
-                .then(([atpCsv, wtaCsv]) => {
-                    const atpStats = this.parseATP(atpCsv);
+            // 1. Load ATP Data
+            p.loadStrings(this.ATP_FILE_PATH, (atpLines) => {
+                const atpCsv = atpLines.join('\r\n');
+                const atpStats = this.parseATP(atpCsv);
+
+                // 2. Load WTA Data, nesting the next operation
+                p.loadStrings(this.WTA_FILE_PATH, (wtaLines) => {
+                    const wtaCsv = wtaLines.join('\r\n');
                     const wtaStats = this.parseWTA(wtaCsv);
+                    
+                    // 3. Combine and Process Data
                     const combinedStats = { ...atpStats, ...wtaStats };
 
                     const processedData = Object.values(combinedStats)
@@ -181,13 +194,9 @@
                     if (manager && manager.p5) {
                         manager.p5.redraw(); 
                     }
-                })
-                .catch(error => {
-                    console.error('Viz_RQ3_B: Error loading or parsing data:', error);
-                    this.localData = []; 
-                    this.filteredData = [];
-                    this.isDataLoading = false;
-                });
+                }, handleLoadError); // WTA error callback
+
+            }, handleLoadError); // ATP error callback
         },
         
         //Filter Visibility Management
