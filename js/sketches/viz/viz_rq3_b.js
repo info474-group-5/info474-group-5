@@ -5,17 +5,14 @@
         isDataLoading: false,
         ATP_FILE_PATH: 'data/raw/atp_matches.csv', 
         WTA_FILE_PATH: 'data/raw/wta-grandslam.csv',
-        
-        // UI State for Interactivity
+      
         filteredData: null,
         hoveredCell: null,
-        
-        // P5.js UI Elements 
+    
         yearFilterSelect: null,
         surfaceFilterSelect: null,
         filterWrapper: null, 
 
-        // Data Processing Constants and Helpers (Retained)
         TOP_PLAYERS: [
             'Federer R.', 'Nadal R.', 'Djokovic N.', 'Murray A.', 'Wawrinka S.', 'Del Potro J.',
             'Williams S.', 'Sharapova M.', 'Halep S.', 'Swiatek I.', 'Azarenka V.', 'Osaka N.'
@@ -196,9 +193,7 @@
                 this.filterWrapper.style('display', show ? 'block' : 'none');
             }
         },
-        
-        // UI and Interactivity Functions
-        
+      
         applyFilters: function(p, allData) {
              const selectedYear = this.yearFilterSelect ? this.yearFilterSelect.value() : 'All Years';
             const selectedSurface = this.surfaceFilterSelect ? this.surfaceFilterSelect.value() : 'All Surfaces';
@@ -338,17 +333,12 @@
                 return;
             }
        
-            // --- PLOT PARAMETERS & MARGINS (FINAL CORRECTED VALUES) ---
-            
-            // plotX for Y-axis label space (Player Names) - REDUCED to 80 to move plot left
             const plotX = manager.offsetX + 80; 
             const plotY = manager.offsetY + 80; 
  
-            // INCREASED legendMargin to 250 to ensure plot clears the scrollbar area
             const legendMargin = 250; 
             const availablePlotWidth = manager.width - plotX - legendMargin; 
-            
-            // bottomMargin kept at 80 (space for rotated X-axis labels)
+  
             const bottomMargin = 80; 
             const availablePlotHeight = manager.height - plotY - bottomMargin; 
             
@@ -360,7 +350,6 @@
             const minCellWidth = 15;
             const minCellHeight = 15;
 
-            // Calculate cell sizes based on available space
             const idealCellHeight = availablePlotHeight / num_rows;
             let finalCellHeight;
             let finalPlotHeight;
@@ -400,8 +389,7 @@
                     return p.lerpColor(midColor, highColor, normalizedRate);
                 }
             }
-            
-            // --- DRAW TITLE (CENTERED over the plot area) ---
+   
             p.fill(0);
             p.textAlign(p.CENTER, p.TOP); 
             p.textSize(18);
@@ -412,7 +400,6 @@
             
             p.text('Top Tennis Players Game Win Rates by Year and Surface', centerPlotX, titleY);
 
-            // --- DRAW HEATMAP ---
             p.push();
             p.translate(plotX, plotY);
             p.noStroke();
@@ -450,8 +437,6 @@
                 p.pop();
             });
 
-            // Y-Axis Labels (Player - Surface)
-            // maxNameWidth is now smaller due to reduced plotX
             const maxNameWidth = plotX - 5; 
             p.textAlign(p.RIGHT, p.CENTER);
             p.textSize(10);
@@ -481,7 +466,7 @@
             // Legend
             const legendWidth = 20;
             const legendHeight = finalPlotHeight / 2; 
-            // Legend X position is well clear of the edge due to increased legendMargin
+           
             const legendX = plotX + finalPlotWidth + 20;
             const legendY = plotY;
 
@@ -508,14 +493,9 @@
             
 
             if (this.filterWrapper) {
-                // Filters are centered under the plot area
-                // Increased width to ensure both filter elements fit on one line
                 const estimatedWrapperWidth = 450; 
-                
-                // Center the filter wrapper horizontally beneath the plot
                 const filterX = plotX + finalPlotWidth / 2 - estimatedWrapperWidth / 2; 
-                
-                // Positioned below the X-axis labels
+          
                 const filterY = canvasBottomY + 50; 
                 
                 this.filterWrapper.position(filterX, filterY);
