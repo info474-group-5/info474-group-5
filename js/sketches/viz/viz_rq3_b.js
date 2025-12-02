@@ -5,14 +5,17 @@
         isDataLoading: false,
         ATP_FILE_PATH: 'data/raw/atp_matches.csv', 
         WTA_FILE_PATH: 'data/raw/wta-grandslam.csv',
-      
+        
+        // UI State for Interactivity
         filteredData: null,
         hoveredCell: null,
-    
+        
+        // P5.js UI Elements 
         yearFilterSelect: null,
         surfaceFilterSelect: null,
         filterWrapper: null, 
 
+        // Data Processing Constants and Helpers (Retained)
         TOP_PLAYERS: [
             'Federer R.', 'Nadal R.', 'Djokovic N.', 'Murray A.', 'Wawrinka S.', 'Del Potro J.',
             'Williams S.', 'Sharapova M.', 'Halep S.', 'Swiatek I.', 'Azarenka V.', 'Osaka N.'
@@ -150,9 +153,20 @@
         loadData: function (p, manager) {
              if (this.isDataLoading) return;
             this.isDataLoading = true;
-            
-            const atpPromise = fetch(this.ATP_FILE_PATH).then(res => res.text());
-            const wtaPromise = fetch(this.WTA_FILE_PATH).then(res => res.text());
+      
+            const atpPromise = new Promise((resolve, reject) => {
+                p.loadStrings(this.ATP_FILE_PATH, 
+                    lines => resolve(lines.join('\r\n')), 
+                    error => reject(error)
+                );
+            });
+
+            const wtaPromise = new Promise((resolve, reject) => {
+                p.loadStrings(this.WTA_FILE_PATH, 
+                    lines => resolve(lines.join('\r\n')), 
+                    error => reject(error)
+                );
+            });
 
             Promise.all([atpPromise, wtaPromise])
                 .then(([atpCsv, wtaCsv]) => {
@@ -193,7 +207,7 @@
                 this.filterWrapper.style('display', show ? 'block' : 'none');
             }
         },
-      
+    
         applyFilters: function(p, allData) {
              const selectedYear = this.yearFilterSelect ? this.yearFilterSelect.value() : 'All Years';
             const selectedSurface = this.surfaceFilterSelect ? this.surfaceFilterSelect.value() : 'All Surfaces';
@@ -332,13 +346,13 @@
                 p.text('No data available for current filter selection.', manager.width / 2, manager.height / 2);
                 return;
             }
-       
+   
             const plotX = manager.offsetX + 80; 
             const plotY = manager.offsetY + 80; 
  
             const legendMargin = 250; 
             const availablePlotWidth = manager.width - plotX - legendMargin; 
-  
+            
             const bottomMargin = 80; 
             const availablePlotHeight = manager.height - plotY - bottomMargin; 
             
@@ -389,12 +403,11 @@
                     return p.lerpColor(midColor, highColor, normalizedRate);
                 }
             }
-   
+  
             p.fill(0);
             p.textAlign(p.CENTER, p.TOP); 
             p.textSize(18);
-            
-            // Calculate center point of the available plot area
+
             const centerPlotX = plotX + finalPlotWidth / 2;
             const titleY = manager.offsetY + 30;
             
@@ -466,7 +479,7 @@
             // Legend
             const legendWidth = 20;
             const legendHeight = finalPlotHeight / 2; 
-           
+  
             const legendX = plotX + finalPlotWidth + 20;
             const legendY = plotY;
 
@@ -495,7 +508,7 @@
             if (this.filterWrapper) {
                 const estimatedWrapperWidth = 450; 
                 const filterX = plotX + finalPlotWidth / 2 - estimatedWrapperWidth / 2; 
-          
+               
                 const filterY = canvasBottomY + 50; 
                 
                 this.filterWrapper.position(filterX, filterY);
