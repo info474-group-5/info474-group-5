@@ -1,12 +1,12 @@
 // viz_rq1_aggression_scatter.js
-// RQ1B – "Serve Power Court": Creative tennis court visualization
+// RQ1B – Split tennis court design with better spacing
 
 (function () {
   const Viz = {
     table: null,
     initialized: false,
 
-    margin: { top: 100, right: 240, bottom: 80, left: 80 },
+    margin: { top: 110, right: 240, bottom: 80, left: 100 },
     chartW: 0,
     chartH: 0,
 
@@ -14,21 +14,10 @@
     colors: {},
     series: {},
 
-    // store domains & court box for axes
-    acesMin: null,
-    acesMax: null,
-    domMin: null,
-    domMax: null,
-    courtX: null,
-    courtY: null,
-    courtW: null,
-    courtH: null,
-
-    // Interactive state
     isPlaying: false,
     playStartTime: null,
-    playDuration: 6000,
-    
+    playDuration: 5000,
+
     hoverPoint: null,
 
     ensureInit(p) {
@@ -37,18 +26,16 @@
       this.chartW = p.width - this.margin.left - this.margin.right;
       this.chartH = p.height - this.margin.top - this.margin.bottom;
 
-      // PROJECT COLORS: ATP dark blue, WTA hot pink
+      // Tennis ball colors: ATP = dark blue, WTA = hot pink
       this.colors["ATP"] = {
-        main: p.color(30, 64, 175, 255),       // navy
-        trail: p.color(30, 64, 175, 100),
-        glow: p.color(30, 64, 175, 60),
-        accent: p.color(23, 37, 84, 255)       // darker navy for labels
+        main: p.color(30, 60, 140),      // Dark blue
+        light: p.color(60, 100, 180),
+        accent: p.color(20, 40, 100)
       };
       this.colors["WTA"] = {
-        main: p.color(236, 72, 153, 255),      // hot pink
-        trail: p.color(236, 72, 153, 100),
-        glow: p.color(236, 72, 153, 60),
-        accent: p.color(157, 23, 77, 255)      // deeper pink for labels
+        main: p.color(255, 20, 120),     // Hot pink
+        light: p.color(255, 80, 160),
+        accent: p.color(200, 0, 90)
       };
 
       this.table = p.loadTable(
@@ -86,68 +73,65 @@
       }
 
       this.series = byTour;
-      this.computeCourtPositions();
+      this.computeScales();
     },
-
-    computeCourtPositions() {
-      // Map data to court positions
-      // X-axis (horizontal): aggression (aces per 100) -> left to right (baseline to net)
-      // Y-axis (vertical): serve dominance -> split court (WTA top, ATP bottom)
-      
-      let allAces = [], allDom = [];
+    
+    computeScales() {
+      const courtGap = 20; // space between courts
+      const halfW = (this.chartW - courtGap) / 2;
+    
+      // WTA on left, ATP on right
+      const wtaCourtX = 0;
+      const atpCourtX = halfW + courtGap;
+    
+      // --- Global dom (effectiveness) range across both tours ---
+      let allDoms = [];
       for (let t of this.tours) {
-        allAces = allAces.concat(this.series[t].map(d => d.aces));
-        allDom = allDom.concat(this.series[t].map(d => d.dom));
+        allDoms = allDoms.concat(this.series[t].map(d => d.dom));
       }
-
-      const acesMin = Math.min(...allAces);
-      const acesMax = Math.max(...allAces);
-      const domMin = Math.min(...allDom);
-      const domMax = Math.max(...allDom);
-
-      // save for axes
-      this.acesMin = acesMin;
-      this.acesMax = acesMax;
-      this.domMin = domMin;
-      this.domMax = domMax;
-
-      // Court dimensions – slightly more zoomed in (bigger court, thinner side areas)
-      const courtW = this.chartW * 0.88;
-      const courtH = this.chartH * 0.88;
-      const courtX = (this.chartW - courtW) / 2;
-      const courtY = (this.chartH - courtH) / 2;
-
-      this.courtW = courtW;
-      this.courtH = courtH;
-      this.courtX = courtX;
-      this.courtY = courtY;
-
+      const domMinGlobal = Math.min(...allDoms);
+      const domMaxGlobal = Math.max(...allDoms);
+      const domPad = (domMaxGlobal - domMinGlobal) * 0.2;
+      // ----------------------------------------------------------
+    
       for (let t of this.tours) {
-        const isATP = (t === "ATP");
-        
-        for (let d of this.series[t]) {
-          // X: aggression maps to depth on court (left=baseline, right=net)
-          const acesNorm = (d.aces - acesMin) / (acesMax - acesMin || 1);
-          d.courtX = courtX + acesNorm * courtW;
-
-          // Y: dominance maps to height within tour's half.
-          // Use most of each half (zoomed), less dead space.
-          const domNorm = (d.dom - domMin) / (domMax - domMin || 1);
-          
-          if (isATP) {
-            // ATP: bottom half of court
-            const halfStart = courtY + courtH * 0.54;
-            const halfHeight = courtH * 0.36;
-            d.courtY = halfStart + (1 - domNorm) * halfHeight;
-          } else {
-            // WTA: top half of court
-            const halfStart = courtY + courtH * 0.10;
-            const halfHeight = courtH * 0.36;
-            d.courtY = halfStart + (1 - domNorm) * halfHeight;
-          }
-
-          // Ball size based on dominance (bigger = more dominant)
-          d.ballSize = 8 + domNorm * 12;
+        const data = this.series[t];
+        const aces = data.map(d => d.aces);
+    
+        const acesMin = Math.min(...aces);
+        const acesMax = Math.max(...aces);
+        const acesPad = (acesMax - acesMin) * 0.2;
+    
+        const courtX = t === "WTA" ? wtaCourtX : atpCourtX;
+    
+        for (let d of data) {
+          // X position within court half (per-tour)
+          const xNorm = (d.aces - acesMin + acesPad) /
+                        (acesMax - acesMin + 2 * acesPad || 1);
+          d.x = courtX + xNorm * halfW;
+    
+          // Y position using SHARED scale
+          const yNorm = (d.dom - domMinGlobal + domPad) /
+                        (domMaxGlobal - domMinGlobal + 2 * domPad || 1);
+          d.y = this.chartH - yNorm * this.chartH;
+    
+          // Ball size
+          d.ballSize = 8 + yNorm * 6;
+        }
+    
+        const sharedScale = {
+          courtX: courtX,
+          courtW: halfW,
+          acesMin: acesMin - acesPad,
+          acesMax: acesMax + acesPad,
+          domMin: domMinGlobal - domPad,
+          domMax: domMaxGlobal + domPad
+        };
+    
+        if (t === "WTA") {
+          this.wtaScales = sharedScale;
+        } else {
+          this.atpScales = sharedScale;
         }
       }
     },
@@ -166,7 +150,7 @@
       if (!this.table || !Object.keys(this.series).length) {
         p.background(250);
         p.fill(80);
-        p.text("Loading serve power data…", 40, 40);
+        p.text("Loading serve data…", 40, 40);
         return;
       }
 
@@ -175,10 +159,9 @@
       p.push();
       p.translate(this.margin.left, this.margin.top);
 
-      // Determine revealed year
       const years = this.getAllYears();
       let revealIdx = 0;
-      
+
       if (this.isPlaying) {
         const elapsed = p.millis() - this.playStartTime;
         const t = Math.min(1, elapsed / this.playDuration);
@@ -190,25 +173,25 @@
 
       const currentYear = revealIdx < years.length ? years[revealIdx] : years[years.length - 1];
 
-      // Draw tennis court
-      this.drawTennisCourt(p);
+      // Draw split tennis courts
+      this.drawTennisCourts(p);
 
-      // Axes + ticks (around the court)
+      // Draw axes for both courts
       this.drawAxes(p);
 
-      // Court zones, tour labels, evolution arrow
-      this.drawCourtZones(p);
+      // Quadrant labels
+      this.drawQuadrantLabels(p);
 
-      // Draw ball trajectories
-      this.drawBallTrajectories(p, currentYear);
+      // Trajectories
+      this.drawTrajectories(p, currentYear);
 
-      // Draw balls
-      this.drawTennisBalls(p, currentYear);
+      // Tennis balls
+      this.drawBalls(p, currentYear);
 
-      // Hover interaction
+      // Hover
       this.handleHover(p);
 
-      // Title and UI
+      // UI
       this.drawTitle(p, currentYear);
       this.drawLegendBox(p);
       this.drawPlayButton(p);
@@ -216,193 +199,194 @@
       p.pop();
     },
 
-    drawTennisCourt(p) {
-      const { courtX, courtY, courtW, courtH } = this;
+    drawTennisCourts(p) {
+      const courtGap = 20;
+      const halfW = (this.chartW - courtGap) / 2;
 
-      // Clay court gradient (terre battue)
+      // WTA court (left)
+      this.drawSingleCourt(p, 0, 0, halfW, this.chartH, "WTA");
+
+      // ATP court (right)
+      this.drawSingleCourt(p, halfW + courtGap, 0, halfW, this.chartH, "ATP");
+    },
+
+    drawSingleCourt(p, x, y, w, h, tour) {
+      // Clay court gradient
       p.noStroke();
-      for (let i = 0; i < courtH; i += 3) {
-        const t = i / courtH;
+      for (let i = 0; i < h; i += 4) {
+        const t = i / h;
         const c = p.lerpColor(
-          p.color(205, 133, 63),  // Sandy brown
-          p.color(178, 102, 51),  // Darker clay
+          p.color(200, 135, 75),
+          p.color(175, 110, 60),
           t
         );
         p.fill(c);
-        p.rect(courtX, courtY + i, courtW, 3);
+        p.rect(x, y + i, w, 4);
       }
 
-      // Court lines (white) – slightly thinner to feel more "zoomed in"
-      p.stroke(255, 255, 255, 240);
-      p.strokeWeight(2.5);
+      // Court boundary
       p.noFill();
-      
-      // Outer boundary
-      p.rect(courtX, courtY, courtW, courtH, 4);
-
-      // Net (center line)
-      const netY = courtY + courtH / 2;
+      p.stroke(255, 255, 255, 220);
       p.strokeWeight(3);
-      p.line(courtX, netY, courtX + courtW, netY);
+      p.rect(x + 5, y + 5, w - 10, h - 10, 4);
 
-      // Service boxes (a bit closer to baselines to reduce side dead space)
-      const serviceLineY1 = courtY + courtH * 0.28;
-      const serviceLineY2 = courtY + courtH * 0.72;
+      // Net (horizontal middle)
+      p.strokeWeight(4);
+      p.line(x + 5, y + h / 2, x + w - 5, y + h / 2);
+
+      // Service lines
       p.strokeWeight(2);
-      p.line(courtX, serviceLineY1, courtX + courtW, serviceLineY1);
-      p.line(courtX, serviceLineY2, courtX + courtW, serviceLineY2);
+      p.line(x + 5, y + h / 4, x + w - 5, y + h / 4);
+      p.line(x + 5, y + (3 * h) / 4, x + w - 5, y + (3 * h) / 4);
 
-      // Center service line
-      const centerX = courtX + courtW / 2;
-      p.line(centerX, serviceLineY1, centerX, netY);
-      p.line(centerX, netY, centerX, serviceLineY2);
+      // Center line
+      p.line(x + w / 2, y + h / 4, x + w / 2, y + (3 * h) / 4);
 
-      // Baseline markers – thinner and closer to edges (so main court is visually bigger)
-      p.strokeWeight(1.5);
-      p.line(courtX, courtY + courtH * 0.06, courtX + courtW, courtY + courtH * 0.06);
-      p.line(courtX, courtY + courtH * 0.94, courtX + courtW, courtY + courtH * 0.94);
 
-      // Net post shadows
-      p.noStroke();
-      p.fill(0, 40);
-      p.rect(courtX - 6, netY - 3, 6, 6);
-      p.rect(courtX + courtW, netY - 3, 6, 6);
     },
 
-    // NEW: Axes & quadrant ticks around the court
     drawAxes(p) {
-      const { courtX, courtY, courtW, courtH, acesMin, acesMax, domMin, domMax } = this;
+      const wtaS = this.wtaScales;
+      const atpS = this.atpScales;
 
-      if (acesMin == null) return;
+      // WTA axes (left court)
+      this.drawCourtAxes(p, wtaS, "WTA");
 
-      p.textSize(10);
+      // ATP axes (right court)
+      this.drawCourtAxes(p, atpS, "ATP");
+
+      // ---- Shared X-axis label ----
+      p.noStroke();
+      p.fill(30);
+      p.textSize(13);
+      p.textStyle(p.BOLD);
+      p.textAlign(p.CENTER, p.TOP);
+
+      // position: centered under BOTH courts
+      const centerX = this.chartW * 0.44;  // adjust if needed
+      const labelY = this.chartH + 60;     // lowers the label
+
+      p.text("Aggression: Aces per 100 Serve Points (-> More Aggressive)", centerX, labelY);
+
+    },
+
+    drawCourtAxes(p, scales, tour) {
+      const x = scales.courtX;
+      const w = scales.courtW;
+
+      // Bottom axis line
+      p.stroke(60);
+      p.strokeWeight(2.5);
+      p.line(x, this.chartH, x + w, this.chartH);
+
+      // Left axis line
+      p.line(x, 0, x, this.chartH);
+
+      p.textSize(9);
+      p.fill(30);
       p.textStyle(p.NORMAL);
-      p.fill(40);
 
-      // X-axis along bottom of court
-      const axisY = Math.min(this.chartH - 25, courtY + courtH + 18);
-      p.stroke(120);
-      p.strokeWeight(1.5);
-      p.line(courtX, axisY, courtX + courtW, axisY);
-
+      // X-axis ticks
       const xTicks = 4;
+      p.textAlign(p.CENTER, p.TOP);
       for (let i = 0; i <= xTicks; i++) {
-        const val = acesMin + (acesMax - acesMin) * (i / xTicks);
-        const x = courtX + ((val - acesMin) / (acesMax - acesMin || 1)) * courtW;
+        const val = p.lerp(scales.acesMin, scales.acesMax, i / xTicks);
+        const xx = x + (i / xTicks) * w;
 
-        // tick
-        p.line(x, axisY, x, axisY + 4);
-
-        // label
         p.noStroke();
-        p.textAlign(p.CENTER, p.TOP);
-        p.text(val.toFixed(1), x, axisY + 6);
-        p.stroke(120);
+        p.text(val.toFixed(1), xx, this.chartH + 8);
+
+        p.stroke(200, 80);
+        p.strokeWeight(1);
       }
 
-      // X-axis label
-      p.noStroke();
-      p.textAlign(p.CENTER, p.TOP);
-      p.textSize(11);
-      p.textStyle(p.BOLD); 
-      p.fill(30);
-      p.text("Aces per 100 Serve Points (→ More aggressive)", courtX + courtW / 2, axisY + 22);
-
-      // Y-axis along left of court
-      const axisX = courtX - 30;
-      p.stroke(120);
-      p.strokeWeight(1.5);
-      p.line(axisX, courtY, axisX, courtY + courtH);
-
-      const yTicks = 4;
+      // Y-axis ticks (only on left side)
+      const yTicks = 5;
+      p.textAlign(p.RIGHT, p.CENTER);
       for (let i = 0; i <= yTicks; i++) {
-        const val = domMin + (domMax - domMin) * (i / yTicks);
-        const y = courtY + (1 - (val - domMin) / (domMax - domMin || 1)) * courtH;
+        const val = p.lerp(scales.domMin, scales.domMax, i / yTicks);
+        const yy = this.chartH - (i / yTicks) * this.chartH;
 
-        // tick
-        p.line(axisX - 4, y, axisX, y);
-
-        // label
         p.noStroke();
-        p.textAlign(p.RIGHT, p.CENTER);
-        p.text(val.toFixed(0) + "%", axisX - 6, y);
-        p.stroke(120);
+        if (tour === "WTA") {
+          p.text(val.toFixed(0) + "%", x - 8, yy);
+        }
+
+        p.stroke(200, 80);
+        p.strokeWeight(1);
+        p.line(x, yy, x + w, yy);
       }
 
-      // Y-axis label
+      // Axis labels
       p.noStroke();
-      p.fill(30);
-      p.textSize(11);
-      p.textStyle(p.BOLD); 
-      p.push();
-      p.translate(axisX - 38, courtY + courtH / 2);
-      p.rotate(-p.HALF_PI);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.text("Serve Dominance % (↑ More effective)", 0, 0);
-      p.pop();
-    },
-
-    drawCourtZones(p) {
-      const { courtX, courtY, courtW, courtH } = this;
-
-      // Zone labels
-      p.textAlign(p.CENTER, p.CENTER);
-      p.textSize(11);
-      p.textStyle(p.ITALIC);
-      
-      // Left side (baseline): "Conservative Serving"
-      p.fill(255, 255, 255, 200);
-      p.text("BASELINE", courtX + 40, courtY + courtH / 2);
-      p.textSize(9);
-      p.text("(conservative)", courtX + 40, courtY + courtH / 2 + 14);
-
-      // Right side (net): "Aggressive Serving"
-      p.textSize(11);
-      p.text("NET", courtX + courtW - 40, courtY + courtH / 2);
-      p.textSize(9);
-      p.text("(aggressive)", courtX + courtW - 40, courtY + courtH / 2 + 14);
-
-      // Arrow showing direction of improvement – move it a bit up so text isn't cut off
-      p.stroke(255, 255, 255, 160);
-      p.strokeWeight(3);
-      p.fill(255, 255, 255, 160);
-      const arrowY = courtY + courtH - 32;   // was -15; raised so labels stay inside
-      p.line(courtX + 60, arrowY, courtX + courtW - 60, arrowY);
-      
-      // Arrow head
-      p.push();
-      p.translate(courtX + courtW - 60, arrowY);
-      p.noStroke();
-      p.triangle(0, 0, -12, -6, -12, 6);
-      p.pop();
-
-      p.noStroke();
-      p.textSize(10);
-      p.textStyle(p.NORMAL);
-      p.fill(255, 255, 255, 220);
+      p.fill(20);
       p.textAlign(p.CENTER, p.TOP);
+      p.textSize(11);
+      p.textStyle(p.BOLD);
+      p.text(tour, x + w / 2, this.chartH + 32);
+
+
+      p.textAlign(p.CENTER, p.TOP);
+      p.textSize(11);
+      p.textStyle(p.BOLD);
+
+
+      if (tour === "WTA") {
+        p.push();
+        p.translate(x - 50, this.chartH / 2);
+        p.rotate(-p.HALF_PI);
+        p.textAlign(p.CENTER, p.CENTER);
+        p.textSize(11);
+        p.textStyle(p.BOLD);
+        p.text("Serve Effectiveness (%)", 0, 0);
+        p.pop();
+      }
+
+
     },
 
-    drawBallTrajectories(p, currentYear) {
+    drawQuadrantLabels(p) {
+      const wtaS = this.wtaScales;
+      const atpS = this.atpScales;
+
+      p.fill(255, 255, 255, 150);
+      p.textSize(9);
+      p.textStyle(p.ITALIC);
+
+      // WTA quadrants
+      p.textAlign(p.LEFT, p.TOP);
+      p.text("Low agg.\nHigh effect.", wtaS.courtX + 10, 10);
+      p.textAlign(p.RIGHT, p.TOP);
+      p.text("High agg.\nHigh effect.", wtaS.courtX + wtaS.courtW - 10, 10);
+
+      // ATP quadrants
+      p.textAlign(p.LEFT, p.TOP);
+      p.text("Low agg.\nHigh effect.", atpS.courtX + 10, 10);
+      p.textAlign(p.RIGHT, p.TOP);
+      p.text("High agg.\nHigh effect.", atpS.courtX + atpS.courtW - 10, 10);
+    },
+
+    drawTrajectories(p, currentYear) {
       for (let t of this.tours) {
         const data = this.series[t];
         const colorSet = this.colors[t];
 
-        // Draw trail with gradient fade
-        for (let i = 0; i < data.length - 1; i++) {
-          const d1 = data[i];
-          const d2 = data[i + 1];
-          
-          if (d2.year > currentYear) break;
+        // Path line
+        p.noFill();
+        p.stroke(colorSet.light);
+        p.strokeWeight(3);
 
-          p.stroke(colorSet.trail);
-          p.strokeWeight(4);
-          p.line(d1.courtX, d1.courtY, d2.courtX, d2.courtY);
+        p.beginShape();
+        for (let d of data) {
+          if (d.year <= currentYear) {
+            p.vertex(d.x, d.y);
+          }
         }
+        p.endShape();
       }
     },
 
-    drawTennisBalls(p, currentYear) {
+    drawBalls(p, currentYear) {
       for (let t of this.tours) {
         const data = this.series[t];
         const colorSet = this.colors[t];
@@ -413,68 +397,54 @@
 
           const isFirst = (i === 0);
           const isCurrent = (d.year === currentYear);
-          const isMilestone = (d.year % 5 === 0);
+          const showLabel = (d.year % 5 === 0) || isFirst || isCurrent;
 
           const r = d.ballSize;
 
-          if (isCurrent) {
-            // Current year: animated glowing ball
-            const pulse = 1 + 0.2 * Math.sin(p.millis() / 300);
-            
-            // Large glow
-            p.noStroke();
-            p.fill(colorSet.glow);
-            p.circle(d.courtX, d.courtY, r * 5 * pulse);
-            
-            // Mid glow
-            p.fill(colorSet.trail);
-            p.circle(d.courtX, d.courtY, r * 3 * pulse);
-          }
-
-          // "Tennis ball" texture but in brand colors
+          // Tennis ball (solid, no glow)
           p.noStroke();
           p.fill(colorSet.main);
-          p.circle(d.courtX, d.courtY, r * 2);
+          p.circle(d.x, d.y, r * 2);
 
-          // Ball seam (curved line)
+          // Tennis ball seam
           p.noFill();
-          p.stroke(255, 255, 255, 190);
-          p.strokeWeight(1.5);
-          p.arc(d.courtX, d.courtY, r * 1.8, r * 1.8, -p.PI / 6, p.PI / 6);
-          p.arc(d.courtX, d.courtY, r * 1.8, r * 1.8, p.PI * 5 / 6, p.PI * 7 / 6);
+          p.stroke(255, 220);
+          p.strokeWeight(1);
+          p.arc(d.x, d.y, r * 1.5, r * 1.5, -p.PI / 4, p.PI / 4);
+          p.arc(d.x, d.y, r * 1.5, r * 1.5, p.PI * 3 / 4, p.PI * 5 / 4);
 
-          // Highlight (makes it look 3D)
+          // Highlight
           p.noStroke();
-          p.fill(255, 255, 255, 160);
-          p.circle(d.courtX - r * 0.3, d.courtY - r * 0.3, r * 0.6);
-
-          // Shadow under ball
-          p.fill(0, 0, 0, 55);
-          p.ellipse(d.courtX + 2, d.courtY + r + 2, r * 1.5, r * 0.4);
+          p.fill(255, 255, 255, 200);
+          p.circle(d.x - r * 0.25, d.y - r * 0.25, r * 0.4);
 
           // Year labels
-          if (isFirst || isMilestone || isCurrent) {
+          if (showLabel) {
             p.fill(colorSet.accent);
-            p.textSize(isCurrent ? 13 : 10);
+            p.textSize(isCurrent ? 11 : 9);
             p.textStyle(p.BOLD);
             p.textAlign(p.CENTER, p.BOTTOM);
             p.noStroke();
-            
-            // White background for legibility
-            const txtW = p.textWidth(d.year.toString()) + 6;
-            p.fill(255, 240);
-            p.rect(d.courtX - txtW / 2, d.courtY - r - 18, txtW, 14, 3);
-            
-            p.fill(colorSet.accent);
-            p.text(d.year, d.courtX, d.courtY - r - 6);
 
+            // White background
+            const txtW = p.textWidth(d.year.toString()) + 3;
+            p.fill(255, 240);
+            p.rect(d.x - txtW / 2, d.y - r - 14, txtW, 11, 2);
+
+            p.fill(colorSet.accent);
+            p.text(d.year, d.x, d.y - r - 5);
+
+            // Current year values
             if (isCurrent) {
-              // Show metrics
-              p.textSize(9);
+              p.textSize(8);
               p.textStyle(p.NORMAL);
               p.textAlign(p.CENTER, p.TOP);
+              const valTxt = `${d.aces.toFixed(1)} | ${d.dom.toFixed(0)}%`;
+              const valW = p.textWidth(valTxt) + 3;
+              p.fill(255, 240);
+              p.rect(d.x - valW / 2, d.y + r + 3, valW, 11, 2);
               p.fill(colorSet.accent);
-              p.text(`${d.aces.toFixed(1)} aces | ${d.dom.toFixed(1)}% dom`, d.courtX, d.courtY + r + 6);
+              p.text(valTxt, d.x, d.y + r + 5);
             }
           }
         }
@@ -486,12 +456,11 @@
       const my = p.mouseY - this.margin.top;
 
       this.hoverPoint = null;
-      let bestDist = 25;
+      let bestDist = 18;
 
       for (let t of this.tours) {
-        const data = this.series[t];
-        for (let d of data) {
-          const dist = Math.sqrt((mx - d.courtX) ** 2 + (my - d.courtY) ** 2);
+        for (let d of this.series[t]) {
+          const dist = Math.sqrt((mx - d.x) ** 2 + (my - d.y) ** 2);
           if (dist < bestDist) {
             bestDist = dist;
             this.hoverPoint = { tour: t, ...d };
@@ -503,63 +472,53 @@
         const pt = this.hoverPoint;
         const colorSet = this.colors[pt.tour];
 
-        // Glow ring
+        // Highlight ring
         p.noFill();
         p.stroke(colorSet.accent);
-        p.strokeWeight(3);
-        p.circle(pt.courtX, pt.courtY, pt.ballSize * 3);
+        p.strokeWeight(2);
+        p.circle(pt.x, pt.y, pt.ballSize * 2.5);
 
         // Tooltip
         const lines = [
           `${pt.tour} — ${pt.year}`,
-          `Aggression: ${pt.aces.toFixed(2)} aces/100 pts`,
-          `Effectiveness: ${pt.dom.toFixed(1)}% serve dominance`
+          `Aggression: ${pt.aces.toFixed(2)}`,
+          `Effectiveness: ${pt.dom.toFixed(1)}%`
         ];
-        
-        this.drawTooltip(p, pt.courtX, pt.courtY, lines, colorSet);
+        this.drawTooltip(p, pt.x, pt.y, lines, colorSet);
       }
     },
 
     drawTooltip(p, x, y, lines, colorSet) {
-      const padding = 10;
-      p.textSize(11);
+      const padding = 7;
+      p.textSize(10);
       p.textStyle(p.NORMAL);
-      
+
       let maxW = 0;
       for (let txt of lines) maxW = Math.max(maxW, p.textWidth(txt));
-      
+
       const boxW = maxW + padding * 2;
-      const boxH = lines.length * 16 + padding * 2;
-      
-      let boxX = x + 25;
+      const boxH = lines.length * 13 + padding * 2;
+
+      let boxX = x + 18;
       let boxY = y - boxH / 2;
-      
-      if (boxX + boxW > this.chartW) boxX = x - boxW - 25;
+
+      if (boxX + boxW > this.chartW) boxX = x - boxW - 18;
       if (boxY < 0) boxY = 5;
       if (boxY + boxH > this.chartH) boxY = this.chartH - boxH - 5;
 
-      p.noStroke();
       p.fill(255, 250);
-      p.rect(boxX, boxY, boxW, boxH, 8);
-      
       p.stroke(colorSet.accent);
       p.strokeWeight(2);
-      p.noFill();
-      p.rect(boxX, boxY, boxW, boxH, 8);
+      p.rect(boxX, boxY, boxW, boxH, 5);
 
       p.noStroke();
       p.textAlign(p.LEFT, p.TOP);
       let ty = boxY + padding;
       for (let i = 0; i < lines.length; i++) {
-        if (i === 0) {
-          p.fill(colorSet.accent);
-          p.textStyle(p.BOLD);
-        } else {
-          p.fill(40);
-          p.textStyle(p.NORMAL);
-        }
+        p.fill(i === 0 ? colorSet.accent : 40);
+        p.textStyle(i === 0 ? p.BOLD : p.NORMAL);
         p.text(lines[i], boxX + padding, ty);
-        ty += 16;
+        ty += 13;
       }
     },
 
@@ -569,37 +528,37 @@
       p.textAlign(p.LEFT, p.BOTTOM);
       p.textSize(20);
       p.textStyle(p.BOLD);
-      p.text("Serve Power Evolution Court", 0, -68);
-      
-      p.textSize(13);
+      p.text("Serve Evolution: Aggression vs. Effectiveness", 0, -75);
+
+      p.textSize(12);
       p.textStyle(p.NORMAL);
       p.fill(80);
-      p.text("Ball position shows serving aggression; ball size shows effectiveness", 0, -48);
+      p.text("Split courts show each tour's journey from 2000 to 2024", 0, -55);
 
-      // Year counter – slight x tweak so it doesn't overlap subtitle
+      // Year box
       p.fill(255, 250);
       p.stroke(120);
       p.strokeWeight(1.5);
-      const yearBoxX = this.chartW - 60;
-      p.rect(yearBoxX, -78, 120, 35, 6);
-      
+      const yearBoxX = this.chartW - 110;
+      p.rect(yearBoxX, -60, 110, 32, 6);
+
       p.noStroke();
       p.fill(40);
       p.textAlign(p.CENTER, p.CENTER);
-      p.textSize(11);
+      p.textSize(10);
       p.textStyle(p.NORMAL);
-      p.text("SEASON", yearBoxX + 60, -68);
-      
-      p.textSize(20);
+      p.text("SEASON", yearBoxX + 55, -52);
+
+      p.textSize(18);
       p.textStyle(p.BOLD);
-      p.text(currentYear, yearBoxX + 60, -53);
+      p.text(currentYear, yearBoxX + 55, -37);
     },
 
     drawLegendBox(p) {
       const boxX = this.chartW + 20;
       const boxY = 10;
       const boxW = 200;
-      const boxH = 200;
+      const boxH = 180;
 
       p.fill(255, 252);
       p.stroke(180);
@@ -611,63 +570,63 @@
       p.textSize(13);
       p.textStyle(p.BOLD);
       p.textAlign(p.LEFT, p.TOP);
-      p.text("HOW TO READ", boxX + 12, boxY + 12);
+      p.text("LEGEND", boxX + 12, boxY + 12);
 
       p.textStyle(p.NORMAL);
       p.textSize(10);
       p.fill(60);
-      p.text("• Left to Right = More aggressive\n• Ball size = More effective\n• Path shows evolution", boxX + 12, boxY + 35);
+      p.text("Each tour on separate court\nRight & Up = Better serving", boxX + 12, boxY + 35);
 
-      let yPos = boxY + 85;
+      let yPos = boxY + 75;
 
-      // ATP ball (now blue)
+      // ATP ball
       p.fill(this.colors["ATP"].main);
-      p.circle(boxX + 30, yPos, 16);
+      p.circle(boxX + 25, yPos, 14);
       p.noFill();
-      p.stroke(255, 180);
-      p.strokeWeight(1.5);
-      p.arc(boxX + 30, yPos, 14, 14, -p.PI / 6, p.PI / 6);
-      
+      p.stroke(255, 220);
+      p.strokeWeight(1);
+      p.arc(boxX + 25, yPos, 12, 12, -p.PI / 4, p.PI / 4);
+
       p.noStroke();
       p.fill(40);
       p.textSize(12);
       p.textStyle(p.BOLD);
       p.textAlign(p.LEFT, p.CENTER);
-      p.text("ATP Tour", boxX + 50, yPos);
-      
+      p.text("ATP Tour", boxX + 45, yPos);
+
       p.textStyle(p.NORMAL);
       p.textSize(10);
       p.fill(100);
-      p.text("Men's path (blue)", boxX + 50, yPos + 14);
+      p.text("Men", boxX + 45, yPos + 13);
 
       yPos += 50;
 
-      // WTA ball (hot pink)
+      // WTA ball
       p.fill(this.colors["WTA"].main);
-      p.circle(boxX + 30, yPos, 16);
+      p.circle(boxX + 25, yPos, 14);
       p.noFill();
-      p.stroke(255, 180);
-      p.strokeWeight(1.5);
-      p.arc(boxX + 30, yPos, 14, 14, -p.PI / 6, p.PI / 6);
-      
+      p.stroke(255, 220);
+      p.strokeWeight(1);
+      p.arc(boxX + 25, yPos, 12, 12, -p.PI / 4, p.PI / 4);
+
       p.noStroke();
       p.fill(40);
       p.textSize(12);
       p.textStyle(p.BOLD);
       p.textAlign(p.LEFT, p.CENTER);
-      p.text("WTA Tour", boxX + 50, yPos);
-      
+      p.text("WTA Tour", boxX + 45, yPos);
+
       p.textStyle(p.NORMAL);
       p.textSize(10);
       p.fill(100);
-      p.text("Women's path (pink)", boxX + 50, yPos + 14);
+      p.text("Women", boxX + 45, yPos + 13);
     },
 
     drawPlayButton(p) {
       const btnX = this.chartW + 30;
-      const btnY = 230;
+      const btnY = 210;
       const btnW = 180;
-      const btnH = 40;
+      const btnH = 38;
 
       const mx = p.mouseX - this.margin.left;
       const my = p.mouseY - this.margin.top;
@@ -686,7 +645,7 @@
 
       p.noStroke();
       p.fill(isHover ? 30 : 60);
-      p.textSize(13);
+      p.textSize(12);
       p.textStyle(p.BOLD);
       p.textAlign(p.CENTER, p.CENTER);
       p.text(this.isPlaying ? "⏸ PLAYING..." : "▶ WATCH EVOLUTION", btnX + btnW / 2, btnY + btnH / 2);
@@ -694,9 +653,9 @@
 
     handleClick(p) {
       const btnX = this.chartW + 30;
-      const btnY = 230;
+      const btnY = 210;
       const btnW = 180;
-      const btnH = 40;
+      const btnH = 38;
 
       const mx = p.mouseX - this.margin.left;
       const my = p.mouseY - this.margin.top;
