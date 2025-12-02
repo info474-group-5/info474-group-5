@@ -215,7 +215,7 @@
       p.push();
       p.fill(40);
       p.textSize(18);
-      p.textStyle(p.BOLD); 
+      p.textStyle(p.BOLD);
       p.textAlign(p.CENTER, p.CENTER);
       p.noStroke();
       p.text("Player Dashboard: Explore Dominance by Player", p.width / 2, 25);
@@ -291,7 +291,7 @@
 
       const player = this.playerData[key];
 
-      const detailX = 240;            // left edge of the detail area
+      const detailX = 240; // left edge of the detail area
       const detailY = 80;
       const detailW = p.width - detailX - 20;
 
@@ -322,13 +322,13 @@
       // X position for text/card (based on photo)
       const textBlockX = photoX + photoW + 40;
 
-      // Stats card: SAME SIZE, but vertically centered vs the image
+      // Stats card
       const statsCardW = 200;
       const statsCardH = 165;
       const statsCardX = textBlockX - 15;
-      const statsCardY = photoY + (photoH - statsCardH) / 2;  // center
+      const statsCardY = photoY + (photoH - statsCardH) / 2; // center
 
-      p.fill(250);                 // very soft white
+      p.fill(250); // very soft white
       p.stroke(210);
       p.strokeWeight(1);
       p.rect(statsCardX, statsCardY, statsCardW, statsCardH, 10);
@@ -349,33 +349,23 @@
       p.fill(90);
       const summaryY = textBlockY + 26;
 
-      // 🎾 Tour
       p.text(`🎾 Tour: ${player.tour}`, textBlockX, summaryY);
-
-      // 🏆 Grand Slams
       p.text(`🏆 Grand Slams: ${player.grandSlamTitles}`, textBlockX, summaryY + 18);
-
-      // ⭐ Peak ranking
       p.text(`⭐ Peak Ranking: #${player.peakRanking}`, textBlockX, summaryY + 36);
-
-      // 📊 Win %
       p.text(`📊 Win %: ${player.careerWinPct}%`, textBlockX, summaryY + 54);
-
-      // 👤 Age
       p.text(`👤 Age: ${player.age}`, textBlockX, summaryY + 72);
 
-      // ⏳ Retired / 🟢 Active
       if (player.isRetired) {
         p.text(`⏳ Retired: ${player.retirementYear}`, textBlockX, summaryY + 90);
       } else {
         p.text(`🟢 Status: Active`, textBlockX, summaryY + 90);
       }
 
-      // Metrics bars – pushed further down for more space under photo
+      // Metrics bars – each on a 0–100 scale
       const metrics = [
-        { label: "Serve efficiency", value: player.serveEfficiency, max: 100, unit: "%" },
-        { label: "Return games won", value: player.returnGamesWon, max: 50, unit: "%" },
-        { label: "Break point conv.", value: player.breakPointConversion, max: 60, unit: "%" }
+        { label: "Serve efficiency", value: player.serveEfficiency, unit: "%" },
+        { label: "Return games won", value: player.returnGamesWon, unit: "%" },
+        { label: "Break point conv.", value: player.breakPointConversion, unit: "%" }
       ];
 
       const barsStartY = photoY + photoH + 60; // more gap below picture
@@ -398,8 +388,8 @@
         p.noStroke();
         p.rect(barStartX, y, barWidth, barHeight, 3);
 
-        // Value fill
-        const fillWidth = p.map(m.value, 0, m.max, 0, barWidth);
+        // Value fill: scale directly by 0–100
+        const fillWidth = barWidth * (m.value / 100);
         p.fill(player.color);
         p.rect(barStartX, y, fillWidth, barHeight, 3);
 
@@ -445,7 +435,7 @@
       });
 
       return false;
-    },
+    }
   };
 
   window.Viz_RQ2B_Dashboard = Viz;
