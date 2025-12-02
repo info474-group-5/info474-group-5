@@ -22,7 +22,7 @@
                 window.VizTitle.draw(p, manager, ai, progress);
                 return;
             }
-            
+
             if (ai === 2) {
                 window.Viz_RQ3_B.toggleFilters(false);
                 window.Viz_RQ3_a.draw(p, manager, ai, progress);
@@ -36,12 +36,27 @@
                 return;
             }
 
-            // Section 4: RQ1
+            // Section 4: Pace & Serving – show a static image
             if (ai === 4) {
-                window.Viz_RQ3_B.toggleFilters(false); // HIDE FILTERS
-                // Place holder for picture
+                window.Viz_RQ3_B.toggleFilters(false);
+                if (!this.section4Img) {
+                    this.section4Img = p.loadImage("photos/pace_serve_photo.jpg");
+                }
+            
+                if (this.section4Img) {
+                    let imgW = 520;
+                    let imgH = (this.section4Img.height / this.section4Img.width) * imgW;
+            
+                    // current position:
+                    let x = manager.offsetX + 20;  // <-- THIS is what controls how far right it goes
+                    let y = manager.offsetY + 20;
+            
+                    p.image(this.section4Img, x, y, imgW, imgH);
+                }
                 return;
             }
+            
+
 
             // Section 5: RQ1_A
             if (ai === 5) {
