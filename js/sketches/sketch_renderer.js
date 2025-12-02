@@ -48,7 +48,7 @@
                     let imgH = (this.section4Img.height / this.section4Img.width) * imgW;
             
                     // current position:
-                    let x = manager.offsetX + 20;  // <-- THIS is what controls how far right it goes
+                    let x = manager.offsetX + 20;  
                     let y = manager.offsetY + 20;
             
                     p.image(this.section4Img, x, y, imgW, imgH);
@@ -71,6 +71,21 @@
 
             // Section 7: RQ2
             if (ai === 7) {
+                window.Viz_RQ3_B.toggleFilters(false);
+                if (!this.section7Img) {
+                    this.section7Img = p.loadImage("photos/rq2_photo.jpg");
+                }
+            
+                if (this.section7Img) {
+                    let imgW = 520;
+                    let imgH = (this.section7Img.height / this.section7Img.width) * imgW;
+            
+                    // current position:
+                    let x = manager.offsetX + 20;  
+                    let y = manager.offsetY + 20;
+            
+                    p.image(this.section7Img, x, y, imgW, imgH);
+                }
                 return;
             }
 
@@ -98,7 +113,7 @@
                     let imgH = (this.section10Img.height / this.section10Img.width) * imgW;
             
                     // current position:
-                    let x = manager.offsetX + 20;  // <-- THIS is what controls how far right it goes
+                    let x = manager.offsetX + 20;  
                     let y = manager.offsetY + 20;
             
                     p.image(this.section10Img, x, y, imgW, imgH);
