@@ -1,12 +1,12 @@
 // viz_rq1_aces_trend.js
-// RQ1A – Aces per Match Over Time: Clear trend visualization with tennis aesthetic
+// RQ1A – Aces per Match Over Time: Enhanced interactive visualization
 
 (function () {
   const Viz = {
     table: null,
     initialized: false,
 
-    margin: { top: 80, right: 40, bottom: 60, left: 80 },
+    margin: { top: 90, right: 220, bottom: 70, left: 90 },
     chartW: 0,
     chartH: 0,
 
@@ -15,9 +15,13 @@
     colors: {},
     series: {}, // { ATP: [{ year, value, x, y }], WTA: [...] }
 
-    hoverYear: null,
     xScale: null,
     yScale: null,
+    
+    // Interactive state
+    isPlaying: false,
+    playStartTime: null,
+    playDuration: 4000, // 4 seconds to animate through all years
 
     ensureInit(p) {
       if (this.initialized) return;
@@ -25,9 +29,17 @@
       this.chartW = p.width - this.margin.left - this.margin.right;
       this.chartH = p.height - this.margin.top - this.margin.bottom;
 
-      // More saturated, visible colors
-      this.colors["ATP"] = p.color(30, 115, 190, 255);
-      this.colors["WTA"] = p.color(220, 50, 150, 255);
+      // Bolder, more saturated colors with distinct personalities
+      this.colors["ATP"] = {
+        main: p.color(20, 90, 180, 255),
+        light: p.color(80, 150, 230, 180),
+        glow: p.color(20, 90, 180, 80)
+      };
+      this.colors["WTA"] = {
+        main: p.color(220, 30, 140, 255),
+        light: p.color(255, 80, 180, 180),
+        glow: p.color(220, 30, 140, 80)
+      };
 
       this.table = p.loadTable(
         "data/processed/rqx_aces_by_year.csv",
@@ -81,8 +93,8 @@
         allVals = allVals.concat(this.series[t].map(d => d.value));
       }
 
-      const yMin = Math.floor(Math.min(...allVals));
-      const yMax = Math.ceil(Math.max(...allVals));
+      const yMin = Math.floor(Math.min(...allVals)) - 1;
+      const yMax = Math.ceil(Math.max(...allVals)) + 1;
 
       // Create scale functions
       const xMin = this.years[0];
@@ -127,77 +139,105 @@
         return;
       }
 
-      p.background(250);
+      p.background(252);
 
       p.push();
       p.translate(this.margin.left, this.margin.top);
 
-      // Tennis-themed background
+      // Tennis-themed background (darker green)
       this.drawBackground(p);
 
-      // Determine revealed year based on scroll progress
-      const revealIdx = Math.round(
-        p.constrain(progress * this.years.length, 0, this.years.length)
-      );
+      // Determine revealed year
+      let revealIdx = 0;
+      
+      if (this.isPlaying) {
+        // Auto-play animation
+        const elapsed = p.millis() - this.playStartTime;
+        const t = Math.min(1, elapsed / this.playDuration);
+        revealIdx = Math.round(t * this.years.length);
+        
+        if (t >= 1) {
+          this.isPlaying = false; // Stop when complete
+        }
+      } else {
+        // Scroll-based reveal starting from 2003 (WTA data begins)
+        revealIdx = Math.round(p.constrain(progress * this.years.length, 0, this.years.length));
+      }
+
+      const currentYear = revealIdx < this.years.length ? this.years[revealIdx] : this.years[this.years.length - 1];
 
       // Draw axes
       this.drawAxes(p);
 
       // Draw trend lines progressively
-      this.drawTrendLines(p, revealIdx);
+      this.drawTrendLines(p, revealIdx, currentYear);
 
       // Draw data points
-      this.drawDataPoints(p, revealIdx);
+      this.drawDataPoints(p, revealIdx, currentYear);
 
-      // Show current values
-      this.drawCurrentValues(p, revealIdx);
+      // Highlight current year
+      this.drawYearHighlight(p, currentYear);
 
-      // Title and legend
-      this.drawTitleLegend(p);
+      // Show current values with glowing balls
+      this.drawCurrentValues(p, currentYear);
+
+      // Title and year counter
+      this.drawTitle(p, currentYear);
+      
+      // Legend box
+      this.drawLegendBox(p);
+
+      // Play button
+      this.drawPlayButton(p);
 
       p.pop();
     },
 
     drawBackground(p) {
-      // Subtle tennis court green gradient background
+      // Darker tennis court green gradient background
       p.noStroke();
-      for (let i = 0; i < this.chartH; i += 4) {
+      for (let i = 0; i < this.chartH; i += 3) {
         const t = i / this.chartH;
         const c = p.lerpColor(
-          p.color(245, 250, 245),
-          p.color(230, 245, 235),
+          p.color(225, 240, 228),
+          p.color(200, 225, 205),
           t
         );
         p.fill(c);
-        p.rect(0, i, this.chartW, 4);
+        p.rect(0, i, this.chartW, 3);
       }
 
-      // Subtle net line in middle
-      p.stroke(200, 220, 200);
+      // Subtle court lines
+      p.stroke(185, 210, 190);
       p.strokeWeight(1);
+      // Net line
       p.line(0, this.chartH / 2, this.chartW, this.chartH / 2);
+      // Service lines
+      p.line(0, this.chartH / 4, this.chartW, this.chartH / 4);
+      p.line(0, (3 * this.chartH) / 4, this.chartW, (3 * this.chartH) / 4);
     },
 
     drawAxes(p) {
-      p.stroke(100);
-      p.strokeWeight(2);
+      p.stroke(70);
+      p.strokeWeight(2.5);
       p.line(0, this.chartH, this.chartW, this.chartH); // x-axis
       p.line(0, 0, 0, this.chartH); // y-axis
 
-      p.textSize(11);
-      p.fill(60);
+      p.textSize(12);
+      p.fill(50);
+      p.textStyle(p.NORMAL);
 
       // X-axis labels (years)
       p.textAlign(p.CENTER, p.TOP);
-      const yearStep = Math.max(1, Math.floor(this.years.length / 8));
+      const yearStep = 2; // Show every 2 years
       for (let i = 0; i < this.years.length; i += yearStep) {
         const year = this.years[i];
         const x = this.xScale.toPixel(year);
         p.noStroke();
-        p.text(year, x, this.chartH + 8);
-        p.stroke(180);
+        p.text(year, x, this.chartH + 10);
+        p.stroke(160);
         p.strokeWeight(1);
-        p.line(x, this.chartH, x, this.chartH + 4);
+        p.line(x, this.chartH, x, this.chartH + 5);
       }
 
       // Y-axis labels (aces per match)
@@ -207,148 +247,317 @@
         const val = p.lerp(this.yScale.min, this.yScale.max, i / yTicks);
         const y = this.yScale.toPixel(val);
         p.noStroke();
-        p.text(val.toFixed(1), -8, y);
-        p.stroke(220);
-        p.strokeWeight(1);
+        p.text(val.toFixed(1), -10, y);
+        p.stroke(210);
+        p.strokeWeight(0.5);
         p.line(0, y, this.chartW, y);
       }
 
-      // Axis labels
+      // Axis labels (bold)
       p.noStroke();
-      p.fill(40);
+      p.fill(30);
       p.textAlign(p.CENTER, p.TOP);
-      p.textSize(13);
-      p.text("Year", this.chartW / 2, this.chartH + 36);
+      p.textSize(14);
+      p.textStyle(p.BOLD);
+      p.text("Year", this.chartW / 2, this.chartH + 42);
 
       p.push();
-      p.translate(-55, this.chartH / 2);
+      p.translate(-60, this.chartH / 2);
       p.rotate(-p.HALF_PI);
       p.text("Aces per Match", 0, 0);
       p.pop();
     },
 
-    drawTrendLines(p, revealIdx) {
-      const revealYear = revealIdx < this.years.length ? this.years[revealIdx] : this.years[this.years.length - 1];
-
+    drawTrendLines(p, revealIdx, currentYear) {
+      // Draw lines with gradient fade effect
       for (let t of this.tours) {
         const data = this.series[t];
-        const col = this.colors[t];
+        const colorSet = this.colors[t];
 
+        // Shadow/glow effect
         p.noFill();
-        p.stroke(col);
-        p.strokeWeight(3);
-
+        p.stroke(colorSet.glow);
+        p.strokeWeight(8);
         p.beginShape();
         for (let d of data) {
-          if (d.year <= revealYear) {
+          if (d.year <= currentYear) {
             p.vertex(d.x, d.y);
           }
         }
         p.endShape();
+
+        // Main line
+        p.stroke(colorSet.main);
+        p.strokeWeight(4);
+        p.beginShape();
+        for (let d of data) {
+          if (d.year <= currentYear) {
+            p.vertex(d.x, d.y);
+          }
+        }
+        p.endShape();
+
+        // Distinctive pattern: ATP solid, WTA dashed
+        if (t === "WTA") {
+          p.drawingContext.setLineDash([8, 4]);
+          p.stroke(colorSet.light);
+          p.strokeWeight(3);
+          p.beginShape();
+          for (let d of data) {
+            if (d.year <= currentYear) {
+              p.vertex(d.x, d.y);
+            }
+          }
+          p.endShape();
+          p.drawingContext.setLineDash([]);
+        }
       }
     },
 
-    drawDataPoints(p, revealIdx) {
-      const revealYear = revealIdx < this.years.length ? this.years[revealIdx] : this.years[this.years.length - 1];
-
+    drawDataPoints(p, revealIdx, currentYear) {
       for (let t of this.tours) {
         const data = this.series[t];
-        const col = this.colors[t];
+        const colorSet = this.colors[t];
 
         for (let d of data) {
-          if (d.year <= revealYear) {
-            // Stronger fill for visibility
+          if (d.year <= currentYear) {
+            // Outer glow
             p.noStroke();
-            p.fill(col);
-            
-            // Larger dots for key years
-            const r = (d.year % 5 === 0) ? 7 : 5;
+            p.fill(colorSet.glow);
+            const r = (d.year % 5 === 0) ? 10 : 7;
+            p.circle(d.x, d.y, r * 2.5);
+
+            // Main dot
+            p.fill(colorSet.main);
             p.circle(d.x, d.y, r * 2);
 
-            // White center for contrast
+            // White center
             p.fill(255);
-            p.circle(d.x, d.y, r);
+            p.circle(d.x, d.y, r * 0.8);
+
+            // Label milestone years
+            if (d.year % 5 === 0 && d.year !== currentYear) {
+              p.fill(colorSet.main);
+              p.textSize(9);
+              p.textAlign(p.CENTER, p.BOTTOM);
+              p.text(d.year, d.x, d.y - 14);
+            }
           }
         }
       }
     },
 
-    drawCurrentValues(p, revealIdx) {
-      if (revealIdx === 0) return;
+    drawYearHighlight(p, currentYear) {
+      // Vertical line at current year
+      const x = this.xScale.toPixel(currentYear);
+      
+      p.stroke(100, 150);
+      p.strokeWeight(2);
+      p.drawingContext.setLineDash([5, 5]);
+      p.line(x, 0, x, this.chartH);
+      p.drawingContext.setLineDash([]);
+    },
 
-      const currentYear = revealIdx < this.years.length ? this.years[revealIdx] : this.years[this.years.length - 1];
-
-      // Draw animated "serve ball" at current year position
-      const pulse = 1 + 0.15 * Math.sin(p.millis() / 400);
+    drawCurrentValues(p, currentYear) {
+      const pulse = 1 + 0.12 * Math.sin(p.millis() / 350);
 
       for (let t of this.tours) {
         const data = this.series[t];
         const currentData = data.find(d => d.year === currentYear);
         
         if (currentData) {
-          const col = this.colors[t];
+          const colorSet = this.colors[t];
           
-          // Glowing ball effect
+          // Large glowing halo
           p.noStroke();
-          p.fill(p.red(col), p.green(col), p.blue(col), 60);
-          p.circle(currentData.x, currentData.y, 24 * pulse);
+          p.fill(colorSet.glow);
+          p.circle(currentData.x, currentData.y, 40 * pulse);
           
-          p.fill(col);
-          p.circle(currentData.x, currentData.y, 16 * pulse);
+          // Mid glow
+          p.fill(colorSet.light);
+          p.circle(currentData.x, currentData.y, 26 * pulse);
           
+          // Main ball
+          p.fill(colorSet.main);
+          p.circle(currentData.x, currentData.y, 18 * pulse);
+          
+          // Bright center
           p.fill(255);
-          p.circle(currentData.x, currentData.y, 6);
+          p.circle(currentData.x, currentData.y, 7);
 
-          // Label with current value
-          p.fill(col);
-          p.textSize(14);
-          p.textAlign(p.CENTER, t === "ATP" ? p.BOTTOM : p.TOP);
-          const yOffset = t === "ATP" ? -25 : 25;
-          p.text(`${t}: ${currentData.value.toFixed(2)}`, currentData.x, currentData.y + yOffset);
+          // Value label with background
+          const yOffset = t === "ATP" ? -45 : 45;
+          const labelY = currentData.y + yOffset;
+          
+          p.fill(255, 250);
+          p.noStroke();
+          p.rect(currentData.x - 35, labelY - 10, 70, 20, 4);
+          
+          p.fill(colorSet.main);
+          p.textSize(13);
+          p.textStyle(p.BOLD);
+          p.textAlign(p.CENTER, p.CENTER);
+          p.text(`${currentData.value.toFixed(2)}`, currentData.x, labelY);
         }
       }
-
-      // Year indicator
-      p.fill(40);
-      p.textSize(16);
-      p.textAlign(p.CENTER, p.TOP);
-      p.text(`Year: ${currentYear}`, this.chartW / 2, -60);
     },
 
-    drawTitleLegend(p) {
+    drawTitle(p, currentYear) {
       // Title
       p.noStroke();
       p.fill(20);
       p.textAlign(p.LEFT, p.BOTTOM);
-      p.textSize(18);
-      p.text("RQ1A – Aces per Match Over Time", 0, -60);
-
-      // Legend
-      p.textSize(12);
-      p.textAlign(p.LEFT, p.CENTER);
+      p.textSize(20);
+      p.textStyle(p.BOLD);
+      p.text("Aces per Match Over Time", 0, -58);
       
-      let legendX = this.chartW - 180;
-      let legendY = 20;
-
-      for (let t of this.tours) {
-        const col = this.colors[t];
-        
-        // Color swatch
-        p.fill(col);
-        p.circle(legendX, legendY, 10);
-        
-        // Label
-        p.fill(40);
-        p.text(`${t} Tour`, legendX + 15, legendY);
-        
-        legendY += 20;
-      }
-
-      // Trend annotation
+      p.textSize(13);
+      p.textStyle(p.NORMAL);
       p.fill(80);
+      p.text("Evolution of serving power: ATP vs WTA (2000-2024)", 0, -38);
+
+      // Year counter - styled box on the right
+      p.fill(255, 250);
+      p.stroke(120);
+      p.strokeWeight(1.5);
+      const yearBoxX = this.chartW - 120;
+      p.rect(yearBoxX, -70, 120, 35, 6);
+      
+      p.noStroke();
+      p.fill(40);
+      p.textAlign(p.CENTER, p.CENTER);
       p.textSize(11);
+      p.textStyle(p.NORMAL);
+      p.text("CURRENT YEAR", yearBoxX + 60, -60);
+      
+      p.textSize(20);
+      p.textStyle(p.BOLD);
+      p.fill(20);
+      p.text(currentYear, yearBoxX + 60, -45);
+    },
+
+    drawLegendBox(p) {
+      const boxX = this.chartW + 20;
+      const boxY = 10;
+      const boxW = 180;
+      const boxH = 140;
+
+      // Legend background box
+      p.fill(255, 252);
+      p.stroke(180);
+      p.strokeWeight(1.5);
+      p.rect(boxX, boxY, boxW, boxH, 8);
+
+      // Legend title
+      p.noStroke();
+      p.fill(30);
+      p.textSize(13);
+      p.textStyle(p.BOLD);
       p.textAlign(p.LEFT, p.TOP);
-      p.text("Both tours show steady\nincreases in serving power", legendX, legendY + 10);
+      p.text("LEGEND", boxX + 12, boxY + 12);
+
+      let yPos = boxY + 38;
+
+      // ATP entry
+      p.stroke(this.colors["ATP"].main);
+      p.strokeWeight(4);
+      p.line(boxX + 15, yPos, boxX + 45, yPos);
+      
+      p.noStroke();
+      p.fill(this.colors["ATP"].main);
+      p.circle(boxX + 30, yPos, 10);
+      p.fill(255);
+      p.circle(boxX + 30, yPos, 4);
+      
+      p.fill(40);
+      p.textSize(12);
+      p.textStyle(p.BOLD);
+      p.textAlign(p.LEFT, p.CENTER);
+      p.text("ATP Tour", boxX + 55, yPos);
+      
+      p.textStyle(p.NORMAL);
+      p.textSize(10);
+      p.fill(100);
+      p.text("Men's professional", boxX + 55, yPos + 14);
+
+      yPos += 45;
+
+      // WTA entry with dashed line
+      p.drawingContext.setLineDash([6, 3]);
+      p.stroke(this.colors["WTA"].main);
+      p.strokeWeight(4);
+      p.line(boxX + 15, yPos, boxX + 45, yPos);
+      p.drawingContext.setLineDash([]);
+      
+      p.noStroke();
+      p.fill(this.colors["WTA"].main);
+      p.circle(boxX + 30, yPos, 10);
+      p.fill(255);
+      p.circle(boxX + 30, yPos, 4);
+      
+      p.fill(40);
+      p.textSize(12);
+      p.textStyle(p.BOLD);
+      p.textAlign(p.LEFT, p.CENTER);
+      p.text("WTA Tour", boxX + 55, yPos);
+      
+      p.textStyle(p.NORMAL);
+      p.textSize(10);
+      p.fill(100);
+      p.text("Women's professional", boxX + 55, yPos + 14);
+    },
+
+    drawPlayButton(p) {
+      const btnX = this.chartW + 30;
+      const btnY = 170;
+      const btnW = 160;
+      const btnH = 40;
+
+      // Check hover
+      const mx = p.mouseX - this.margin.left;
+      const my = p.mouseY - this.margin.top;
+      const isHover = mx > btnX && mx < btnX + btnW && my > btnY && my < btnY + btnH;
+
+      // Button background
+      if (isHover) {
+        p.fill(240, 250, 245);
+        p.stroke(80, 180, 120);
+        p.strokeWeight(2.5);
+      } else {
+        p.fill(255);
+        p.stroke(150);
+        p.strokeWeight(1.5);
+      }
+      p.rect(btnX, btnY, btnW, btnH, 8);
+
+      // Button text
+      p.noStroke();
+      p.fill(isHover ? 30 : 60);
+      p.textSize(13);
+      p.textStyle(p.BOLD);
+      p.textAlign(p.CENTER, p.CENTER);
+      p.text(this.isPlaying ? "⏸ PLAYING..." : "▶ PLAY FROM 2000", btnX + btnW / 2, btnY + btnH / 2);
+    },
+
+    handleClick(p) {
+      const btnX = this.chartW + 30;
+      const btnY = 170;
+      const btnW = 160;
+      const btnH = 40;
+
+      const mx = p.mouseX - this.margin.left;
+      const my = p.mouseY - this.margin.top;
+
+      if (mx > btnX && mx < btnX + btnW && my > btnY && my < btnY + btnH) {
+        if (!this.isPlaying) {
+          this.isPlaying = true;
+          this.playStartTime = p.millis();
+        } else {
+          this.isPlaying = false;
+        }
+        return true;
+      }
+      return false;
     }
   };
 

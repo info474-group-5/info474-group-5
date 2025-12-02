@@ -9,7 +9,7 @@ function startP5() {
     // --- Sketch manager ----------------------------------------------------
     function SketchManager() {
         // core layout settings (canvas size only)
-        this.width = 650; // increased from 600
+        this.width = 700; // increased from 600
         this.height = 600; // increased from 520
         this.margin = { top: 0, left: 100, bottom: 40, right: 20 }; // increased left margin
         this.canvasWidth = this.width + this.margin.left + this.margin.right;
@@ -39,6 +39,13 @@ function startP5() {
             // ADD MOUSE PRESSED HANDLER
             p.mousePressed = function () {
                 var ai = self.state.activeIndex || 0;
+
+                // Section 5: RQ1 Aces Trend (play button)
+                if (ai === 5 && window.VizRQ1_AcesTrend) {
+                    if (window.VizRQ1_AcesTrend.handleClick(p)) {
+                        return false;
+                    }
+                }
 
                 if (ai === 8 && window.Viz_RQ2_RanksSlams) {
                     window.Viz_RQ2_RanksSlams.handleClick(p);
