@@ -1,24 +1,23 @@
 // viz_rq1_aces_trend.js
-// RQ1A – "Serving Evolution Court": Aces per Match Over Time (ATP vs WTA)
+// RQ1A – Aces per Match Over Time: Clear trend visualization with tennis aesthetic
 
 (function () {
   const Viz = {
     table: null,
     initialized: false,
 
-    margin: { top: 50, right: 200, bottom: 40, left: 40 },
+    margin: { top: 80, right: 40, bottom: 60, left: 80 },
     chartW: 0,
     chartH: 0,
 
     years: [],
     tours: ["ATP", "WTA"],
     colors: {},
-    // per tour per year numeric value
-    series: {}, // { ATP: [{ year, value }], WTA: [...] }
-    // per tour per year, precomputed impact points on the court
-    impacts: {}, // { ATP: {year: [{x,y,intensity}, ...]}, WTA: {...} }
+    series: {}, // { ATP: [{ year, value, x, y }], WTA: [...] }
 
     hoverYear: null,
+    xScale: null,
+    yScale: null,
 
     ensureInit(p) {
       if (this.initialized) return;
@@ -26,8 +25,9 @@
       this.chartW = p.width - this.margin.left - this.margin.right;
       this.chartH = p.height - this.margin.top - this.margin.bottom;
 
-      this.colors["ATP"] = p.color(30, 115, 190);
-      this.colors["WTA"] = p.color(188, 70, 155);
+      // More saturated, visible colors
+      this.colors["ATP"] = p.color(30, 115, 190, 255);
+      this.colors["WTA"] = p.color(220, 50, 150, 255);
 
       this.table = p.loadTable(
         "data/processed/rqx_aces_by_year.csv",
@@ -67,296 +67,288 @@
       }
 
       this.series = byTour;
-      this.buildImpacts();
+      
+      // Compute scales
+      this.computeScales();
     },
 
-    // Precompute random "serve impact" positions on the court for each year/tour
-    buildImpacts() {
-      const impacts = { ATP: {}, WTA: {} };
+    computeScales() {
+      if (!this.years.length) return;
 
-      // global min/max for scaling intensity
+      // Collect all values for y-axis domain
       let allVals = [];
       for (let t of this.tours) {
         allVals = allVals.concat(this.series[t].map(d => d.value));
       }
-      if (!allVals.length) {
-        this.impacts = impacts;
-        return;
-      }
-      const vMin = Math.min(...allVals);
-      const vMax = Math.max(...allVals) || vMin + 1;
 
-      // We'll fill the *deuce* service box on the near side for ATP
-      // and the *deuce* box on the far side for WTA
-      for (let t of this.tours) {
-        const tourColor = this.colors[t];
-        const tourMap = {};
-        for (let d of this.series[t]) {
-          const year = d.year;
-          const norm = (d.value - vMin) / (vMax - vMin); // 0–1
-          const count = 10 + Math.round(norm * 20);      // number of impacts
-          const yearImpacts = [];
+      const yMin = Math.floor(Math.min(...allVals));
+      const yMax = Math.ceil(Math.max(...allVals));
 
-          for (let i = 0; i < count; i++) {
-            // random position within that tour's service box
-            const pos = this.randomImpactInCourt(tourColor, t);
-            yearImpacts.push({
-              x: pos.x,
-              y: pos.y,
-              intensity: 0.4 + norm * 0.6 // alpha scale
-            });
-          }
-          tourMap[year] = yearImpacts;
+      // Create scale functions
+      const xMin = this.years[0];
+      const xMax = this.years[this.years.length - 1];
+
+      this.xScale = {
+        min: xMin,
+        max: xMax,
+        toPixel: (year) => {
+          const t = (year - xMin) / (xMax - xMin || 1);
+          return t * this.chartW;
         }
-        impacts[t] = tourMap;
-      }
-
-      this.impacts = impacts;
-    },
-
-    // Helper: choose a random point inside the tour's service box
-    randomImpactInCourt(col, tour) {
-      // Court logical coords (0..1 width, 0..1 height) before scaling
-      // We'll map logical coords to the drawn court area later.
-      // We'll treat the court rectangle as [cx0,cx1] x [cy0,cy1] in logical.
-      // Near baseline at cy1, far baseline at cy0.
-
-      // Service boxes: split lengthwise into 4 boxes.
-      // We'll use deuce side: right half of each half.
-      // For ATP: near half; for WTA: far half.
-
-      let x0 = 0.5; // middle (deuce side)
-      let x1 = 1.0;
-      let y0, y1;
-
-      if (tour === "ATP") {
-        // near half (bottom)
-        y0 = 0.5;
-        y1 = 1.0;
-      } else {
-        // WTA – far half (top)
-        y0 = 0.0;
-        y1 = 0.5;
-      }
-
-      const u = Math.random();
-      const v = Math.random();
-
-      return {
-        x: x0 + (x1 - x0) * u,
-        y: y0 + (y1 - y0) * v
       };
+
+      this.yScale = {
+        min: yMin,
+        max: yMax,
+        toPixel: (value) => {
+          const t = (value - yMin) / (yMax - yMin || 1);
+          return this.chartH - t * this.chartH; // invert Y
+        }
+      };
+
+      // Precompute pixel positions
+      for (let t of this.tours) {
+        for (let d of this.series[t]) {
+          d.x = this.xScale.toPixel(d.year);
+          d.y = this.yScale.toPixel(d.value);
+        }
+      }
     },
 
     draw(p, manager, ai, progress) {
       this.ensureInit(p);
 
-      if (!this.table || !this.years.length || !Object.keys(this.impacts.ATP || {}).length) {
-        p.background(245);
+      if (!this.table || !this.years.length) {
+        p.background(250);
         p.fill(80);
         p.textAlign(p.LEFT, p.TOP);
         p.textSize(20);
-        p.text("Loading serving evolution…", 40, 40);
+        p.text("Loading aces data…", 40, 40);
         return;
       }
 
-      p.background(245);
+      p.background(250);
 
       p.push();
       p.translate(this.margin.left, this.margin.top);
 
-      // 1) Draw tennis court
-      this.drawCourt(p);
+      // Tennis-themed background
+      this.drawBackground(p);
 
-      // 2) Determine current year from scroll progress (0→1 over the section)
-      const idx = Math.round(
-        p.constrain(p.lerp(0, this.years.length - 1, progress || 0), 0, this.years.length - 1)
+      // Determine revealed year based on scroll progress
+      const revealIdx = Math.round(
+        p.constrain(progress * this.years.length, 0, this.years.length)
       );
-      const currentYear = this.years[idx];
 
-      // Also support hover over top timeline
-      const hover = this.getHoverYear(p);
-      const activeYear = hover != null ? hover : currentYear;
+      // Draw axes
+      this.drawAxes(p);
 
-      // 3) Draw older years as faint impacts, active year as bright/pulsing
-      const t = p.millis() / 600.0; // for simple pulsing
+      // Draw trend lines progressively
+      this.drawTrendLines(p, revealIdx);
 
-      for (let tour of this.tours) {
-        const col = this.colors[tour];
-        const tourImp = this.impacts[tour];
+      // Draw data points
+      this.drawDataPoints(p, revealIdx);
 
-        for (let y of this.years) {
-          const impacts = tourImp[y];
-          if (!impacts) continue;
+      // Show current values
+      this.drawCurrentValues(p, revealIdx);
 
-          const isActive = (y === activeYear);
-          const age = this.years.indexOf(y) / (this.years.length - 1); // 0 (oldest)–1 (newest)
-
-          for (let imp of impacts) {
-            const pos = this.mapToCourt(p, imp.x, imp.y);
-            const pulse = isActive ? (1 + 0.3 * Math.sin(t * 2 * Math.PI)) : 1;
-            const baseAlpha = isActive ? 200 : p.map(age, 0, 1, 40, 140);
-            const alpha = baseAlpha * imp.intensity * pulse;
-
-            p.noStroke();
-            p.fill(p.red(col), p.green(col), p.blue(col), alpha);
-            const r = isActive ? 10 : 6;
-            p.ellipse(pos.x, pos.y, r, r);
-          }
-        }
-      }
-
-      // 4) Draw timeline + labels
-      this.drawTimeline(p, activeYear);
-      this.drawTitleLegend(p, activeYear);
+      // Title and legend
+      this.drawTitleLegend(p);
 
       p.pop();
     },
 
-    // Map logical (0..1) coords to actual court area on screen
-    mapToCourt(p, u, v) {
-      // Reserve most of chart area for court
-      const cx0 = 0;
-      const cy0 = 0;
-      const cw = this.chartW * 0.9;
-      const ch = this.chartH;
+    drawBackground(p) {
+      // Subtle tennis court green gradient background
+      p.noStroke();
+      for (let i = 0; i < this.chartH; i += 4) {
+        const t = i / this.chartH;
+        const c = p.lerpColor(
+          p.color(245, 250, 245),
+          p.color(230, 245, 235),
+          t
+        );
+        p.fill(c);
+        p.rect(0, i, this.chartW, 4);
+      }
 
-      return {
-        x: cx0 + u * cw,
-        y: cy0 + v * ch
-      };
+      // Subtle net line in middle
+      p.stroke(200, 220, 200);
+      p.strokeWeight(1);
+      p.line(0, this.chartH / 2, this.chartW, this.chartH / 2);
     },
 
-    drawCourt(p) {
-      const cx0 = 0;
-      const cy0 = 0;
-      const cw = this.chartW * 0.9;
-      const ch = this.chartH;
-
-      // base
-      p.noStroke();
-      p.fill(30, 120, 60);
-      p.rect(cx0, cy0, cw, ch, 8);
-
-      p.stroke(245);
+    drawAxes(p) {
+      p.stroke(100);
       p.strokeWeight(2);
+      p.line(0, this.chartH, this.chartW, this.chartH); // x-axis
+      p.line(0, 0, 0, this.chartH); // y-axis
 
-      // outer lines
-      p.noFill();
-      p.rect(cx0 + 20, cy0 + 20, cw - 40, ch - 40);
-
-      // net
-      const netY = cy0 + ch / 2;
-      p.line(cx0 + 20, netY, cx0 + cw - 20, netY);
-
-      // center line
-      p.line(cx0 + cw / 2, cy0 + 20, cx0 + cw / 2, cy0 + ch - 20);
-
-      // service lines
-      const serviceY1 = cy0 + ch / 4 + 10;
-      const serviceY2 = cy0 + (3 * ch) / 4 - 10;
-      p.line(cx0 + 20, serviceY1, cx0 + cw - 20, serviceY1);
-      p.line(cx0 + 20, serviceY2, cx0 + cw - 20, serviceY2);
-
-      // subtle labels "WTA serves" (top) and "ATP serves" (bottom)
-      p.noStroke();
-      p.fill(255, 230);
-      p.textSize(12);
-      p.textAlign(p.CENTER, p.TOP);
-      p.text("WTA serve impacts", cx0 + cw * 0.75, cy0 + 26);
-      p.textAlign(p.CENTER, p.BOTTOM);
-      p.text("ATP serve impacts", cx0 + cw * 0.75, cy0 + ch - 26);
-    },
-
-    getHoverYear(p) {
-      const timelineY = -20; // above court
-      const x0 = 0;
-      const x1 = this.chartW * 0.9;
-
-      const mx = p.mouseX - this.margin.left;
-      const my = p.mouseY - this.margin.top;
-
-      if (my < timelineY - 20 || my > timelineY + 20) return null;
-      if (mx < x0 || mx > x1) return null;
-
-      const t = (mx - x0) / (x1 - x0);
-      const idx = Math.round(t * (this.years.length - 1));
-      return this.years[Math.max(0, Math.min(this.years.length - 1, idx))];
-    },
-
-    drawTimeline(p, activeYear) {
-      const x0 = 0;
-      const x1 = this.chartW * 0.9;
-      const y = -20;
-
-      p.stroke(180);
-      p.strokeWeight(1.5);
-      p.line(x0, y, x1, y);
-
-      p.textAlign(p.CENTER, p.TOP);
       p.textSize(11);
-      p.noStroke();
       p.fill(60);
 
-      const nTicks = Math.min(this.years.length, 8);
-      for (let i = 0; i < nTicks; i++) {
-        const t = i / (nTicks - 1);
-        const idx = Math.round(t * (this.years.length - 1));
-        const year = this.years[idx];
-        const xx = p.lerp(x0, x1, t);
-
-        p.stroke(180);
-        p.line(xx, y - 4, xx, y + 4);
+      // X-axis labels (years)
+      p.textAlign(p.CENTER, p.TOP);
+      const yearStep = Math.max(1, Math.floor(this.years.length / 8));
+      for (let i = 0; i < this.years.length; i += yearStep) {
+        const year = this.years[i];
+        const x = this.xScale.toPixel(year);
         p.noStroke();
-        p.text(year, xx, y + 6);
+        p.text(year, x, this.chartH + 8);
+        p.stroke(180);
+        p.strokeWeight(1);
+        p.line(x, this.chartH, x, this.chartH + 4);
       }
 
-      // active year marker
-      const idx = this.years.indexOf(activeYear);
-      if (idx >= 0) {
-        const t = idx / (this.years.length - 1 || 1);
-        const xx = p.lerp(x0, x1, t);
+      // Y-axis labels (aces per match)
+      p.textAlign(p.RIGHT, p.CENTER);
+      const yTicks = 6;
+      for (let i = 0; i <= yTicks; i++) {
+        const val = p.lerp(this.yScale.min, this.yScale.max, i / yTicks);
+        const y = this.yScale.toPixel(val);
         p.noStroke();
-        p.fill(50, 180, 255);
-        p.circle(xx, y, 8);
+        p.text(val.toFixed(1), -8, y);
+        p.stroke(220);
+        p.strokeWeight(1);
+        p.line(0, y, this.chartW, y);
+      }
+
+      // Axis labels
+      p.noStroke();
+      p.fill(40);
+      p.textAlign(p.CENTER, p.TOP);
+      p.textSize(13);
+      p.text("Year", this.chartW / 2, this.chartH + 36);
+
+      p.push();
+      p.translate(-55, this.chartH / 2);
+      p.rotate(-p.HALF_PI);
+      p.text("Aces per Match", 0, 0);
+      p.pop();
+    },
+
+    drawTrendLines(p, revealIdx) {
+      const revealYear = revealIdx < this.years.length ? this.years[revealIdx] : this.years[this.years.length - 1];
+
+      for (let t of this.tours) {
+        const data = this.series[t];
+        const col = this.colors[t];
+
+        p.noFill();
+        p.stroke(col);
+        p.strokeWeight(3);
+
+        p.beginShape();
+        for (let d of data) {
+          if (d.year <= revealYear) {
+            p.vertex(d.x, d.y);
+          }
+        }
+        p.endShape();
       }
     },
 
-    drawTitleLegend(p, activeYear) {
-      const cw = this.chartW * 0.9;
+    drawDataPoints(p, revealIdx) {
+      const revealYear = revealIdx < this.years.length ? this.years[revealIdx] : this.years[this.years.length - 1];
 
+      for (let t of this.tours) {
+        const data = this.series[t];
+        const col = this.colors[t];
+
+        for (let d of data) {
+          if (d.year <= revealYear) {
+            // Stronger fill for visibility
+            p.noStroke();
+            p.fill(col);
+            
+            // Larger dots for key years
+            const r = (d.year % 5 === 0) ? 7 : 5;
+            p.circle(d.x, d.y, r * 2);
+
+            // White center for contrast
+            p.fill(255);
+            p.circle(d.x, d.y, r);
+          }
+        }
+      }
+    },
+
+    drawCurrentValues(p, revealIdx) {
+      if (revealIdx === 0) return;
+
+      const currentYear = revealIdx < this.years.length ? this.years[revealIdx] : this.years[this.years.length - 1];
+
+      // Draw animated "serve ball" at current year position
+      const pulse = 1 + 0.15 * Math.sin(p.millis() / 400);
+
+      for (let t of this.tours) {
+        const data = this.series[t];
+        const currentData = data.find(d => d.year === currentYear);
+        
+        if (currentData) {
+          const col = this.colors[t];
+          
+          // Glowing ball effect
+          p.noStroke();
+          p.fill(p.red(col), p.green(col), p.blue(col), 60);
+          p.circle(currentData.x, currentData.y, 24 * pulse);
+          
+          p.fill(col);
+          p.circle(currentData.x, currentData.y, 16 * pulse);
+          
+          p.fill(255);
+          p.circle(currentData.x, currentData.y, 6);
+
+          // Label with current value
+          p.fill(col);
+          p.textSize(14);
+          p.textAlign(p.CENTER, t === "ATP" ? p.BOTTOM : p.TOP);
+          const yOffset = t === "ATP" ? -25 : 25;
+          p.text(`${t}: ${currentData.value.toFixed(2)}`, currentData.x, currentData.y + yOffset);
+        }
+      }
+
+      // Year indicator
+      p.fill(40);
+      p.textSize(16);
+      p.textAlign(p.CENTER, p.TOP);
+      p.text(`Year: ${currentYear}`, this.chartW / 2, -60);
+    },
+
+    drawTitleLegend(p) {
       // Title
       p.noStroke();
       p.fill(20);
       p.textAlign(p.LEFT, p.BOTTOM);
       p.textSize(18);
-      p.text("RQ1A – Serving Evolution: Aces per Match Over Time", 0, -40);
+      p.text("RQ1A – Aces per Match Over Time", 0, -60);
 
-      // Active year + values
-      const lines = [];
-      lines.push(`Year: ${activeYear}`);
+      // Legend
+      p.textSize(12);
+      p.textAlign(p.LEFT, p.CENTER);
+      
+      let legendX = this.chartW - 180;
+      let legendY = 20;
 
       for (let t of this.tours) {
-        const d = this.series[t].find(d => d.year === activeYear);
-        if (d) {
-          lines.push(`${t}: ${d.value.toFixed(2)} aces per match`);
-        }
+        const col = this.colors[t];
+        
+        // Color swatch
+        p.fill(col);
+        p.circle(legendX, legendY, 10);
+        
+        // Label
+        p.fill(40);
+        p.text(`${t} Tour`, legendX + 15, legendY);
+        
+        legendY += 20;
       }
 
-      p.textAlign(p.RIGHT, p.BOTTOM);
-      p.textSize(12);
-      let yy = -40;
-      for (let i = 0; i < lines.length; i++) {
-        const text = lines[i];
-        if (i === 0) {
-          p.fill(30);
-        } else {
-          const tour = text.startsWith("ATP") ? "ATP" : (text.startsWith("WTA") ? "WTA" : null);
-          p.fill(tour ? this.colors[tour] : p.color(80));
-        }
-        p.text(text, cw + 160, yy);
-        yy += 16;
-      }
+      // Trend annotation
+      p.fill(80);
+      p.textSize(11);
+      p.textAlign(p.LEFT, p.TOP);
+      p.text("Both tours show steady\nincreases in serving power", legendX, legendY + 10);
     }
   };
 

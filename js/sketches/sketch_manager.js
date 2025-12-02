@@ -9,9 +9,9 @@ function startP5() {
     // --- Sketch manager ----------------------------------------------------
     function SketchManager() {
         // core layout settings (canvas size only)
-        this.width = 600; // content width
-        this.height = 520; // content height
-        this.margin = { top: 0, left: 80, bottom: 40, right: 10 };
+        this.width = 650; // increased from 600
+        this.height = 600; // increased from 520
+        this.margin = { top: 0, left: 100, bottom: 40, right: 20 }; // increased left margin
         this.canvasWidth = this.width + this.margin.left + this.margin.right;
         this.canvasHeight = this.height + this.margin.top + this.margin.bottom;
 
