@@ -204,7 +204,7 @@
 
     draw(p, manager, ai, progress) {
       this.ensureInit(p);
-      p.background(240);
+      p.background(250);
 
       this.drawTitle(p);
       this.drawPlayerList(p);
