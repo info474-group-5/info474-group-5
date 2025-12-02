@@ -1,7 +1,5 @@
 // viz_title.js
-// Draw title-style screens for early active indexes (0 and 1)
 (function () {
-    // cache the image so we don't reload it every frame
     let courtImg = null;
 
     window.VizTitle = {
@@ -13,46 +11,42 @@
             p.noStroke();
 
             if (ai === 0) {
-                // ----- SCREEN 0: KEEP EXISTING INFO 474 TITLE -----
                 p.fill(255);
                 var w = 420;
                 var h = 120;
                 p.rect(cx - w / 2, cy - h / 2, w, h, 6);
 
-                // --- TITLE ---
+                // title
                 p.fill(0);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.textSize(36);
                 p.text(
                     'The Evolution of Dominance\nin Modern Tennis',
                     cx,
-                    cy - 20              // move title slightly higher
+                    cy - 30 
                 );
 
-                // --- NAMES (More Padding) ---
                 p.textSize(18);
                 p.text(
                     'Nikki Suneel, Selma Link, and Stephanie Liu',
                     cx,
-                    cy + 35              // adds clean spacing under the title
+                    cy + 45 
                 );
 
 
             } else {
-                // ----- SCREEN 1: SHOW IMAGE INSTEAD OF "Final Project" -----
                 if (!courtImg) {
                     courtImg = p.loadImage('photos/court_photo.jpg');
                 }
 
                 if (courtImg && courtImg.width) {
-                    // scale image to fit nicely in the card area
                     var canvasW = (manager.width || 600);
-                    var imgMaxW = canvasW * 0.9;      // max 60% of width
+                    var imgMaxW = canvasW * 0.9;
                     var scale = imgMaxW / courtImg.width;
                     var imgW = courtImg.width * scale;
                     var imgH = courtImg.height * scale;
 
-                    // position roughly centered (you can tweak these)
+                    // position centered
                     var x = (manager.offsetX || 0) + canvasW / 2 - imgW / 2 - 80;
                     var y = cy - imgH / 2;
 
