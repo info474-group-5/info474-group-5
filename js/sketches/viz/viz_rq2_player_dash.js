@@ -182,11 +182,11 @@
         djokovic: p.color(255, 228, 96),
         alcaraz: p.color(255, 152, 0),
         sinner: p.color(255, 100, 100),
-        serena: p.color(102, 45, 145),
-        henin: p.color(0, 153, 153),
-        swiatek: p.color(46, 204, 113),
+        serena: p.color(255, 105, 180),
+        henin: p.color(34, 197, 94),
+        swiatek: p.color(147, 51, 234),
         sabalenka: p.color(231, 76, 60),
-        gauff: p.color(155, 89, 182)
+        gauff: p.color(56, 189, 248)
       };
 
       for (let key in this.playerData) {
