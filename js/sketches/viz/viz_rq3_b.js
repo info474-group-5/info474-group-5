@@ -20,6 +20,9 @@
             'Federer R.', 'Nadal R.', 'Djokovic N.', 'Murray A.', 'Wawrinka S.', 'Del Potro J.',
             'Williams S.', 'Sharapova M.', 'Halep S.', 'Swiatek I.', 'Azarenka V.', 'Osaka N.'
         ],
+        
+        // Custom order for surface sorting
+        SURFACE_ORDER: ['Clay', 'Hard', 'Grass'], 
 
         parseScore: function (score, playerIsWinner) {
             if (!score || score.includes('/') || score.includes('RET') || score.includes('W/O') || score.includes('DEF') || score.includes('UNP') || score.includes('.')) {
@@ -78,6 +81,9 @@
                 
                 if (!date || !surface || !player1 || !player2 || !winner || !score || score.trim() === '-1.0') return;
                 
+                // FILTER: Exclude Carpet data
+                if (surface.toUpperCase() === 'CARPET') return;
+
                 const year = parseInt(date.substring(0, 4));
                 if (isNaN(year) || year < 2000) return;
 
@@ -125,6 +131,9 @@
                 const score = row[scoreCol];
                 
                 if (!date || !surface || !winner || !loser || !score) return;
+                
+                // FILTER: Exclude Carpet data
+                if (surface.toUpperCase() === 'CARPET') return;
                 
                 const year = parseInt(date.substring(0, 4));
                 if (isNaN(year) || year < 2000) return;
@@ -298,7 +307,8 @@
             const { x, y, data } = this.hoveredCell;
             const rate = data.Rate;
             
-            const tooltipText = `${data.Player} (${data.Surface}, ${data.Year})\nWin Rate: ${p.nf(rate * 100, 0, 1)}%`;
+            // Clarified metric in tooltip
+            const tooltipText = `${data.Player} (${data.Surface}, ${data.Year})\nGame Win Rate: ${p.nf(rate * 100, 0, 1)}%`;
             
             const padding = 5;
             p.textSize(12);
@@ -347,19 +357,39 @@
                 return;
             }
    
-            const plotX = manager.offsetX + 80; 
-            const plotY = manager.offsetY + 80; 
+            // X-position adjusted for Y-axis label space
+            const plotX = manager.offsetX + 160; 
+            // Y-position adjusted for title + subtitle buffer
+            const plotY = manager.offsetY + 120; 
  
-            const legendMargin = 250; 
+            // INCREASED Legend Margin (Right Side Padding) for better visual balance
+            const legendMargin = 400; 
             const availablePlotWidth = manager.width - plotX - legendMargin; 
             
-            const bottomMargin = 80; 
+            // Increased Bottom Margin for X-axis label space
+            const bottomMargin = 170; 
             const availablePlotHeight = manager.height - plotY - bottomMargin; 
             
-            const num_cols = Array.from(new Set(data.map(d => d.Year))).length;
-            const num_rows = Array.from(new Set(data.map(d => `${d.Player}-${d.Surface}`))).length; 
             const years = Array.from(new Set(data.map(d => d.Year))).sort((a, b) => a - b);
-            const y_axis_labels = Array.from(new Set(data.map(d => `${d.Player}-${d.Surface}`))).sort(); 
+            
+            // --- SORTING LOGIC TO GROUP BY SURFACE ---
+            let y_axis_labels = Array.from(new Set(data.map(d => `${d.Player}-${d.Surface}`)));
+            y_axis_labels.sort((a, b) => {
+                const [, playerA, surfaceA] = a.match(/(.*)-(.*)/);
+                const [, playerB, surfaceB] = b.match(/(.*)-(.*)/);
+                
+                const surfaceOrderA = this.SURFACE_ORDER.indexOf(surfaceA);
+                const surfaceOrderB = this.SURFACE_ORDER.indexOf(surfaceB);
+                
+                if (surfaceOrderA !== surfaceOrderB) {
+                    return surfaceOrderA - surfaceOrderB; // Sort by surface type first (Clay, Hard, Grass)
+                }
+                return playerA.localeCompare(playerB); // Then sort by player name
+            });
+            // --- END SORTING LOGIC ---
+            
+            const num_cols = years.length;
+            const num_rows = y_axis_labels.length;
             
             const minCellWidth = 15;
             const minCellHeight = 15;
@@ -404,14 +434,20 @@
                 }
             }
   
+            // Title and Subtitle rendering
+            const titleY = manager.offsetY + 30;
+            const centerPlotX = plotX + finalPlotWidth / 2;
+
             p.fill(0);
             p.textAlign(p.CENTER, p.TOP); 
             p.textSize(18);
-
-            const centerPlotX = plotX + finalPlotWidth / 2;
-            const titleY = manager.offsetY + 30;
-            
             p.text('Top Tennis Players Game Win Rates by Year and Surface', centerPlotX, titleY);
+
+            p.textSize(12);
+            p.fill(80);
+            p.textLeading(16);
+            p.text('Metric: Ratio of Games Won to Games Played (Win Rate). Win Rates are generally higher on Hard and Grass courts.', centerPlotX, titleY + 25);
+
 
             p.push();
             p.translate(plotX, plotY);
@@ -440,17 +476,18 @@
             // X-Axis Labels (Years)
             p.fill(0);
             p.textSize(10);
-            p.textAlign(p.CENTER, p.TOP);
+            p.textAlign(p.RIGHT, p.CENTER); 
             years.forEach((year, i) => {
                 const x = plotX + i * finalCellWidth + finalCellWidth / 2;
                 p.push();
-                p.translate(x, canvasBottomY + 5); 
-                p.rotate(p.HALF_PI / 2); 
+                p.translate(x, canvasBottomY + 20); // Increased Y offset from 5 to 20
+                p.rotate(p.HALF_PI); // 90-degree (vertical) rotation
                 p.text(year, 0, 0);
                 p.pop();
             });
 
-            const maxNameWidth = plotX - 5; 
+            // Y-Axis Labels (Players & Surface)
+            const maxNameWidth = plotX - manager.offsetX - 5; 
             p.textAlign(p.RIGHT, p.CENTER);
             p.textSize(10);
 
@@ -459,10 +496,11 @@
                 const [player, surface] = label.split('-');
                 let name = `${player} (${surface})`;
         
-                if (p.textWidth(name) > maxNameWidth - manager.offsetX) {
+                // Truncation logic
+                if (p.textWidth(name) > maxNameWidth - 5) { 
                     let truncatedName = '';
                     for(let char of name) {
-                        if (p.textWidth(truncatedName + char + '...') < maxNameWidth - manager.offsetX) {
+                        if (p.textWidth(truncatedName + char + '...') < maxNameWidth - 5) {
                             truncatedName += char;
                         } else {
                             name = truncatedName + '...';
@@ -470,6 +508,20 @@
                         }
                     }
                 }
+                
+                // Add separator line between different surface groups
+                if (i > 0) {
+                    const prevSurface = y_axis_labels[i-1].split('-')[1];
+                    if (surface !== prevSurface) {
+                        p.push();
+                        p.stroke(0, 50); // Light gray line
+                        p.strokeWeight(1);
+                        p.line(plotX, y - finalCellHeight / 2, plotX + finalPlotWidth, y - finalCellHeight / 2);
+                        p.pop();
+                    }
+                }
+                
+                p.fill(0);
                 p.text(name, plotX - 5, y);
             });
 
@@ -509,7 +561,8 @@
                 const estimatedWrapperWidth = 450; 
                 const filterX = plotX + finalPlotWidth / 2 - estimatedWrapperWidth / 2; 
                
-                const filterY = canvasBottomY + 50; 
+                // Filter Y position is now lower due to increased bottom margin
+                const filterY = canvasBottomY + 70; 
                 
                 this.filterWrapper.position(filterX, filterY);
                 this.filterWrapper.style('width', `${estimatedWrapperWidth}px`); 
