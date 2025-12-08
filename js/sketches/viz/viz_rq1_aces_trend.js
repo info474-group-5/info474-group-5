@@ -41,6 +41,7 @@
         glow: p.color(220, 30, 140, 80)
       };
 
+      // Load the data - check for aces_per_set column first
       this.table = p.loadTable(
         "data/processed/rqx_aces_by_year.csv",
         "csv",
@@ -60,16 +61,17 @@
       const yearsSet = new Set();
       const byTour = { ATP: [], WTA: [] };
 
+      // Use aces_per_100_points for fair comparison (normalized by actual points played)
       for (let r = 0; r < this.table.getRowCount(); r++) {
         const year = parseInt(this.table.getString(r, "year"));
         const tour = this.table.getString(r, "tour");
-        const aces = parseFloat(this.table.getString(r, "aces_per_match"));
+        const acesPer100 = parseFloat(this.table.getString(r, "aces_per_100_points"));
 
-        if (!year || isNaN(aces)) continue;
+        if (!year || isNaN(acesPer100)) continue;
         if (!(tour in byTour)) continue;
 
         yearsSet.add(year);
-        byTour[tour].push({ year, value: aces });
+        byTour[tour].push({ year, value: acesPer100 });
       }
 
       this.years = Array.from(yearsSet).sort((a, b) => a - b);
@@ -206,15 +208,7 @@
         p.fill(c);
         p.rect(0, i, this.chartW, 3);
       }
-
-      // Subtle court lines
-      p.stroke(185, 210, 190);
-      p.strokeWeight(1);
-      // Net line
-      p.line(0, this.chartH / 2, this.chartW, this.chartH / 2);
-      // Service lines
-      p.line(0, this.chartH / 4, this.chartW, this.chartH / 4);
-      p.line(0, (3 * this.chartH) / 4, this.chartW, (3 * this.chartH) / 4);
+    
     },
 
     drawAxes(p) {
@@ -264,7 +258,7 @@
       p.push();
       p.translate(-60, this.chartH / 2);
       p.rotate(-p.HALF_PI);
-      p.text("Aces per Match", 0, 0);
+      p.text("Aces per 100 Points", 0, 0);
       p.pop();
     },
 
@@ -409,12 +403,12 @@
       p.textAlign(p.LEFT, p.BOTTOM);
       p.textSize(20);
       p.textStyle(p.BOLD);
-      p.text("Aces per Match Over Time", 0, -58);
+      p.text("Serving Power: Aces per 100 Points", 0, -58);
       
       p.textSize(13);
       p.textStyle(p.NORMAL);
       p.fill(80);
-      p.text("Evolution of serving power: ATP vs WTA (2000-2024)", 0, -38);
+      p.text("ATP vs WTA (2000-2024) Normalized for a fair comparison", 0, -38);
 
       // Year counter - styled box on the right
       p.fill(255, 250);
