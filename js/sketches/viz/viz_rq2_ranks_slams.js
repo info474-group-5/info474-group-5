@@ -411,12 +411,19 @@
         p.mouseX > toggleX && p.mouseX < toggleX + toggleW &&
         p.mouseY > toggleY && p.mouseY < toggleY + toggleH;
 
-      if (this.currentGender === "men") {
-        p.fill(isToggleHovering ? p.color(44, 103, 230) : p.color(70, 130, 240));
-      } else {
-        p.fill(isToggleHovering ? p.color(255, 105, 180) : p.color(255, 130, 200));
+      // Established ATP / WTA colors
+      const atpMain = p.color(30, 60, 140);      // ATP dark blue
+      const wtaMain = p.color(255, 20, 120);     // WTA hot pink
+
+      let btnColor = this.currentGender === "men" ? atpMain : wtaMain;
+
+      // Lighten slightly on hover
+      if (isToggleHovering) {
+        btnColor = p.lerpColor(btnColor, p.color(255), 0.25);
       }
+
       p.noStroke();
+      p.fill(btnColor);
       p.rect(toggleX, toggleY, toggleW, toggleH, 10);
 
       p.fill(255);
